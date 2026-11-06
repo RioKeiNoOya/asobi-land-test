@@ -1,11 +1,8 @@
-
 name: Copy app to test
 on:
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   copy:
     runs-on: ubuntu-latest
@@ -16,11 +13,13 @@ jobs:
           repository: RioKeiNoOya/asobi-land
           ref: main
           path: source
+          persist-credentials: false
       - name: Copy files
         run: |
-          cp -a source/. .
+          rsync -a --exclude='/.git/' --exclude='/.github/' source/ ./
           rm -rf source
           git add -A
-          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Copy app for testing"
-          git push
-  
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Copy app for testing"
+            git push
+          fi
