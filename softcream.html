@@ -6,7 +6,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-
 
 /* v25 iPhone */
 @media(max-width:700px) and (orientation:portrait){html,body{height:100%;overflow:hidden}.layout{grid-template-columns:1fr!important;grid-template-rows:minmax(180px,40%) minmax(0,60%)!important;height:calc(100dvh - 55px)!important}.preview{min-height:0!important}.menu{border-left:0!important;border-top:3px solid #f5d4a1;overflow-y:auto!important;padding:6px!important}.steps{overflow-x:auto!important}.steps button{flex-shrink:0}.choices{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important}.choice{min-height:55px!important}.heading{font-size:15px!important;margin:4px 0!important}.actions{position:sticky;bottom:0;background:#fffdf8;padding:4px 0}.primary,.secondary{padding:9px!important;font-size:14px!important}}
-.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #cone image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #cone{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}.preview #ice image{image-rendering:auto}.choice .scoop-thumb image{image-rendering:auto}</style>
+.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #cone image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #cone{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}.preview #ice image{image-rendering:auto}.choice .scoop-thumb image{image-rendering:auto}\n/* Preserve alpha edges, do not distort raster assets. */\n.preview #ice image,.preview #cone image{image-rendering:auto}\n</style>
 <header><a href="./index.html" style="color:#633d2a;text-decoration:none;font-weight:bold">← あそびランド</a><h1>🍦 ちいさなソフトクリームやさん</h1><button class="secondary" onclick="reset()">はじめから</button></header>
 <main class="layout"><section class="preview" id="preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 430" aria-label="ソフトクリームのプレビュー">
 <ellipse cx="125" cy="401" rx="79" ry="13" fill="#d9c6aa"/><rect x="93" y="369" width="64" height="17" rx="7" fill="#aab9c1"/><rect x="119" y="334" width="12" height="40" fill="#aab9c1"/><ellipse cx="125" cy="332" rx="53" ry="12" fill="#8fa3af"/>
@@ -34,26 +34,34 @@ function tint(hex,factor){
  return '#'+a.map(v=>Math.max(0,Math.min(255,Math.round(factor>0?v+(255-v)*factor:v*(1+factor)))).toString(16).padStart(2,'0')).join('');
 }
 
+// Keep the original generated vanilla artwork unchanged. Other flavours retain the
+// original photographed highlights and shadows instead of multiplying RGB by a tint.
 function flavorFilter(n){
- const hex=flavors[n][2];
- const c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
- const id='flavorTint'+n;
- return '<filter id="'+id+'" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+c[0]+' 0 0 0 0 0 '+c[1]+' 0 0 0 0 0 '+c[2]+' 0 0 0 0 0 1 0"/></filter>';
+ if(n===0)return '';
+ const hex=flavors[n][2], rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+ const shade=rgb.map(v=>Math.max(0,v*.57)).join(' ');
+ const high=rgb.map(v=>Math.min(1,v*.55+.45)).join(' ');
+ return '<filter id="flavorTint'+n+'" color-interpolation-filters="sRGB">'+
+   '<feColorMatrix type="saturate" values="0" result="gray"/>'+
+   '<feComponentTransfer in="gray"><feFuncR type="table" tableValues="'+shade.split(' ')[0]+' '+high.split(' ')[0]+'"/>'+
+   '<feFuncG type="table" tableValues="'+shade.split(' ')[1]+' '+high.split(' ')[1]+'"/>'+
+   '<feFuncB type="table" tableValues="'+shade.split(' ')[2]+' '+high.split(' ')[2]+'"/></feComponentTransfer></filter>';
 }
-const iceArtOk=[true,true,true];
+const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
 function icePicture(n,shape=state.shape){
- const files=['soft-round.png','soft-classic.png','soft-fine.png'];
- const src=iceArtOk[shape]?(files[shape]+'?img=3'):('soft-vector-'+shape+'-'+n+'.svg');
- const appliedFilter=iceArtOk[shape]?' filter="url(#flavorTint'+n+')"':'';
- return '<image href="'+src+'" x="62" y="42" width="126" height="192" preserveAspectRatio="none"'+appliedFilter+'/>';
+ const filter=n===0?'':' filter="url(#flavorTint'+n+')"';
+ return '<image href="'+iceFiles[shape]+'?art=original-1" x="62" y="42" width="126" height="192" preserveAspectRatio="xMidYMid meet"'+filter+'/>';
 }
 function oneScoop(n,shape=state.shape){
  return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape);
 }
+// A winding edge follows the folds of the soft serve rather than a straight
+// vertical split. Both halves use the *same* artwork, so their ridges align.
+const mixSeam='M 127 37 C 121 47 116 51 129 59 L 138 65 Q 141 71 129 79 L 113 91 Q 109 97 127 105 L 142 113 Q 148 120 132 128 L 112 140 Q 106 145 126 155 L 145 162 Q 150 168 131 180 L 110 193 Q 107 198 127 208 L 141 216 Q 146 225 126 240';
 function iceSvg(){
  if(state.mix&&state.flavor2!==null&&state.flavor2>=0){
-  return '<defs><clipPath id="scoopLeft"><rect x="57" y="34" width="68" height="210"/></clipPath>'+
-   '<clipPath id="scoopRight"><rect x="125" y="34" width="68" height="210"/></clipPath></defs>'+
+  return '<defs><clipPath id="scoopLeft"><path d="'+mixSeam+' L 50 240 L 50 30 Z"/></clipPath>'+
+   '<clipPath id="scoopRight"><path d="'+mixSeam+' L 198 240 L 198 30 Z"/></clipPath></defs>'+
    '<g clip-path="url(#scoopLeft)">'+oneScoop(state.flavor)+'</g>'+
    '<g clip-path="url(#scoopRight)">'+oneScoop(state.flavor2)+'</g>';
  }
