@@ -37,15 +37,25 @@ function tint(hex,factor){
 // Keep the original generated vanilla artwork unchanged. Other flavours retain the
 // original photographed highlights and shadows instead of multiplying RGB by a tint.
 function flavorFilter(n){
+ // Vanilla keeps the untouched original art. For other flavours, tint the
+ // original luminance with a continuous tonal curve, not a flat two-tone wash.
  if(n===0)return '';
- const hex=flavors[n][2], rgb=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
- const shade=rgb.map(v=>Math.max(0,v*.57)).join(' ');
- const high=rgb.map(v=>Math.min(1,v*.55+.45)).join(' ');
- return '<filter id="flavorTint'+n+'" color-interpolation-filters="sRGB">'+
+ const rgb=[1,3,5].map(i=>parseInt(flavors[n][2].slice(i,i+2),16)/255);
+ // Seven smoothly interpolated levels retain subtle highlights, midtones and
+ // shadows. The initial pale end also prevents dark, muddy vanilla-like beige.
+ const levels=[.43,.55,.68,.79,.89,.97,1.04];
+ const tables=rgb.map(v=>levels.map((level,j)=>{
+   const lift=[0,.012,.025,.045,.075,.11,.16][j];
+   return Math.min(1,Math.max(0,v*level+lift)).toFixed(4);
+ }).join(' '));
+ return '<filter id="flavorTint'+n+'" x="-3%" y="-3%" width="106%" height="106%" color-interpolation-filters="sRGB">'+
    '<feColorMatrix type="saturate" values="0" result="gray"/>'+
-   '<feComponentTransfer in="gray"><feFuncR type="table" tableValues="'+shade.split(' ')[0]+' '+high.split(' ')[0]+'"/>'+
-   '<feFuncG type="table" tableValues="'+shade.split(' ')[1]+' '+high.split(' ')[1]+'"/>'+
-   '<feFuncB type="table" tableValues="'+shade.split(' ')[2]+' '+high.split(' ')[2]+'"/></feComponentTransfer></filter>';
+   '<feGaussianBlur in="gray" stdDeviation="0.20" result="softGray"/>'+
+   '<feComponentTransfer in="softGray">'+
+   '<feFuncR type="table" tableValues="'+tables[0]+'"/>'+
+   '<feFuncG type="table" tableValues="'+tables[1]+'"/>'+
+   '<feFuncB type="table" tableValues="'+tables[2]+'"/>'+
+   '</feComponentTransfer></filter>';
 }
 const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
 function icePicture(n,shape=state.shape){
