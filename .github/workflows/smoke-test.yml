@@ -1,0 +1,27 @@
+name: Check iPad and iPhone layout
+on:
+  push:
+    paths:
+      - 'tests/smoke.cjs'
+      - '.github/workflows/smoke-test.yml'
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: npm install --no-save playwright
+      - run: npx playwright install --with-deps chromium
+      - name: Start local preview
+        run: |
+          nohup python -m http.server 8000 >/tmp/asobi-server.log 2>&1 &
+          sleep 3
+      - name: Check responsive pages and interaction
+        run: node tests/smoke.cjs
