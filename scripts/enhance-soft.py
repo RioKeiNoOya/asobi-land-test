@@ -2,7 +2,12 @@ from PIL import Image, ImageFilter
 from pathlib import Path
 for name in ('soft-round.png','soft-classic.png','soft-fine.png'):
     p=Path(name)
-    im=Image.open(p).convert('RGBA')
+    try:
+        im=Image.open(p).convert('RGBA')
+        im.load()
+    except (OSError, ValueError) as exc:
+        print('Skipped unreadable PNG',name,exc)
+        continue
     if im.width>=300:
         continue
     scale=4
