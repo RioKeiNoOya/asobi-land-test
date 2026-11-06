@@ -26,15 +26,7 @@ function beep(freq=500){try{let a=new (window.AudioContext||window.webkitAudioCo
 function pageChange(d){page=Math.max(0,Math.min(page+d,Math.ceil(currentOptions().length/10)-1));render()}function currentOptions(){return [cones,shapes,flavors,sauces,decorations.concat(customs.map(c=>[c.name,'🖼️',c.data]))][step]}function choose(i){beep();if(step===0){state.cone=i;speak(cones[i][0]+'コーン')}if(step===1){state.shape=i;speak(shapes[i][0])}if(step===2){if(state.mix){if(state.flavor2===null){state.flavor=i;state.flavor2=-1}else if(state.flavor2===-1){state.flavor2=i}else{state.flavor=i;state.flavor2=-1}}else{state.flavor=i} speak(flavors[i][0])}if(step===3){if(i===4){state.sprinkles=!state.sprinkles}else{state.sauce=i} speak(sauces[i][0])}if(step===4){let items=currentOptions();if(decors.length>=10){document.getElementById('toast').textContent='かざりは 10こまで！';return}let item=items[i];decors.push({id:++serial,label:item[0],emoji:item[1],src:item[2]||({0:'ai-strawberry.png',1:'deco-cherry.png',2:'ai-banana.png',3:'ai-donut.png',4:'deco-wafer.png',5:'deco-wafer.png',6:'deco-star.png',7:'deco-heart.png',8:'deco-bow.png',9:'deco-flower.png'}[i]||''),x:50+(decors.length%3-1)*13,y:27+Math.floor(decors.length/3)*9});speak(item[0]);}render()}
 
 function coneSvg(i=state.cone){
- if(i===5){
-   return '<g aria-label="たべられる ワッフルカップ">'+
-   '<path d="M65 219 Q125 204 185 219 L172 300 Q125 335 78 300 Z" fill="#dba05c" stroke="#8f5829" stroke-width="4"/>'+
-   '<path d="M81 234 L167 311 M63 246 L158 321 M91 219 L176 291 M109 217 L181 268 M168 234 L82 307 M184 249 L98 319 M151 218 L75 287 M128 215 L69 269" stroke="#9a602d" stroke-width="4" opacity=".48"/>'+
-   '<ellipse cx="125" cy="221" rx="61" ry="14" fill="#b87335" stroke="#8f5829" stroke-width="4"/>'+
-   '<ellipse cx="125" cy="215" rx="62" ry="13" fill="none" stroke="#f8cf83" stroke-width="8"/>'+
-   '<path d="M81 235 Q125 251 169 235" fill="none" stroke="#ffd88e" stroke-width="3" opacity=".8"/>'+
-   '</g>';
- }
+ if(i===5)return '<image href="cone-waffle-cup-raster.png" x="55" y="190" width="140" height="157" preserveAspectRatio="none"/>';
  return '<image href="cone-raster-'+Math.min(i,4)+'.png" x="60" y="207" width="130" height="180" preserveAspectRatio="none"/>';
 }
 function tint(hex,factor){
