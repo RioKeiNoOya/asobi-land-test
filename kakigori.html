@@ -11,6 +11,68 @@
 <path transform="translate(180 210) scale(.88) translate(-180 -210)" d="M79 209 C77 195 86 182 94 171 C86 160 102 143 112 133 C109 117 127 109 140 102 C142 92 156 88 169 83 C175 72 191 70 201 82 C217 85 221 98 234 105 C247 113 253 122 263 137 C277 149 278 167 283 178 C288 193 284 208 277 211" fill="none" stroke="#ceeafa" stroke-width="2"/>
 <path transform="translate(180 210) scale(.88) translate(-180 -210)" d="M77 208 Q180 227 282 208" fill="none" stroke="#8bd6f6" stroke-width="3" stroke-linecap="round" opacity=".55"/><text x="180" y="320" text-anchor="middle" font-size="17" fill="#755065">ふたつの いろを まぜよう！</text></svg></div><section class="controls"><div class="modes"><button id="paint" class="on" onclick="mode='paint';render()">🎨 ふつうのシロップ</button><button id="light" onclick="mode='light';render()">✨ ピカピカシロップ</button></div><div class="slots"><div class="slot" data-slot="0">①</div><div class="slot" data-slot="1">②</div></div><div class="result" id="result">いろの まるを うえに ドラッグ！</div><div class="palette" id="palette"></div><p class="help">12色から2色の丸を空白の丸へ運んでね。タップしてから空欄をタップしてもOK。</p></section></main><script>
 const colors=[['しろ','#fff8ec'],['きいろ','#ffe03b'],['だいだい','#f99732'],['あか','#ed3e43'],['ももいろ','#f7a0bd'],['むらさき','#9c6dcb'],['あお','#397ddd'],['みずいろ','#7dd5ec'],['みどり','#51b45b'],['きみどり','#a8ce57'],['ちゃいろ','#91613e'],['くろ','#35343a']];let mode='paint',slots=[null,null],selected=null;const $=id=>document.getElementById(id);function speak(s){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(s);u.lang='ja-JP';u.rate=.85;speechSynthesis.speak(u)}catch{}}function rgb(h){return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255)}function mix(a,b){let A=rgb(a),B=rgb(b);let c=A.map((v,i)=>{let q=mode==='light'?Math.min(1,v+B[i]):Math.sqrt(v*B[i]);return Math.round(q*255)});return '#'+c.map(x=>x.toString(16).padStart(2,'0')).join('')}function render(){['paint','light'].forEach(k=>$(k).classList.toggle('on',k===mode));document.querySelectorAll('.slot').forEach((e,i)=>{e.style.background=slots[i]===null?'white':colors[slots[i]][1];e.textContent=slots[i]===null?i+1:'';e.classList.toggle('filled',slots[i]!==null)});let result=slots.every(x=>x!==null);let hex=result?mix(colors[slots[0]][1],colors[slots[1]][1]):'#ffffff';$('icecolor').setAttribute('fill',hex);$('result').textContent=result?colors[slots[0]][0]+' ＋ '+colors[slots[1]][0]+' → '+(colors.find(x=>x[1].toLowerCase()===hex)?.[0]||'まざった いろ'):'いろを 2つ えらんでね';if(result)speak($('result').textContent)}function setSlot(i,n){slots[i]=n;selected=null;render()}document.querySelectorAll('.slot').forEach(e=>e.onclick=()=>{if(selected!==null)setSlot(+e.dataset.slot,selected)});colors.forEach((c,i)=>{let b=document.createElement('button');b.className='dot';b.textContent=c[0];b.style.background=c[1];b.style.color=['しろ','きいろ','みずいろ','きみどり','ももいろ'].includes(c[0])?'#3b3543':'white';b.title=c[0];b.setAttribute('aria-label',c[0]);b.onclick=()=>{selected=i;speak(c[0])};b.onpointerdown=e=>{e.preventDefault();if(e.pointerType==='mouse')return;selected=i;let ghost=document.createElement('div');ghost.className='ghost';ghost.style.background=c[1];document.body.append(ghost);const move=ev=>{ghost.style.left=ev.clientX-22+'px';ghost.style.top=ev.clientY-22+'px'};move(e);b.setPointerCapture(e.pointerId);b.onpointermove=move;b.onpointerup=ev=>{let target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.slot');if(target)setSlot(+target.dataset.slot,i);ghost.remove();b.onpointermove=null;b.onpointerup=null}};$('palette').append(b)});function clearSlots(){slots=[null,null];render()}render();
+</script><script>
+/* Test build: remove only near-white, edge-connected raster backgrounds.
+   Existing transparent PNGs and cream highlights are preserved. */
+(function(){
+ const assets=new Set([
+ 'soft-round.png','soft-classic.png','soft-fine.png',
+ 'cone-raster-0.png','cone-raster-1.png','cone-raster-2.png',
+ 'cone-raster-3.png','cone-raster-4.png','cone-waffle-cup-raster.png',
+ 'ai-strawberry.png','deco-cherry.png','ai-banana.png','deco-wafer.png',
+ 'deco-star.png','deco-heart.png','deco-bow.png','ice-bowl-raster.png'
+ ]);
+ const cache=new Map(), loading=new Set();
+ function apply(){
+  document.querySelectorAll('img[src],image[href]').forEach(el=>{
+   const attr=el.tagName.toLowerCase()==='image'?'href':'src';
+   const value=el.getAttribute(attr);
+   if(!value||value.startsWith('data:'))return;
+   const name=value.split('?')[0].split('/').pop();
+   if(assets.has(name)&&cache.has(name))el.setAttribute(attr,cache.get(name));
+  });
+ }
+ function clean(name){
+  if(loading.has(name))return;
+  loading.add(name);
+  const im=new Image();
+  im.onload=()=>{
+   try{
+    const w=im.naturalWidth,h=im.naturalHeight;
+    if(!w||!h||w*h>3000000)return;
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
+    const img=ctx.getImageData(0,0,w,h),p=img.data;
+    let white=0,clear=0;
+    for(const idx of [0,w-1,(h-1)*w,w*h-1]){
+      const j=4*idx;
+      if(p[j+3]<240)clear++;
+      if(p[j+3]>245&&Math.min(p[j],p[j+1],p[j+2])>=248)white++;
+    }
+    // No solid white background: don't change antialiased original art.
+    if(clear>0||white<3)return;
+    const seen=new Uint8Array(w*h),q=new Int32Array(w*h);let head=0,tail=0;
+    function push(i){if(seen[i])return;seen[i]=1;const j=4*i;
+      if(p[j+3]>240&&Math.min(p[j],p[j+1],p[j+2])>=245)q[tail++]=i;
+    }
+    for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}
+    for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
+    if(!tail)return;
+    while(head<tail){const i=q[head++],j=4*i;p[j+3]=0;
+      const x=i%w,y=(i/w)|0;
+      if(x>0)push(i-1);if(x<w-1)push(i+1);
+      if(y>0)push(i-w);if(y<h-1)push(i+w);
+    }
+    ctx.putImageData(img,0,0);cache.set(name,canvas.toDataURL('image/png'));apply();
+   }catch(e){/* retain original on unsupported canvas */ }
+  };
+  im.src=name;
+ }
+ assets.forEach(clean);
+ const obs=new MutationObserver(apply);
+ obs.observe(document.body,{subtree:true,childList:true});
+ apply();
+})();
 </script></html>
 
 <!-- v27: 12色のクレパス風パレット。選択・ドラッグ・混色機能は維持。 -->
