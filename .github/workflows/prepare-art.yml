@@ -1,0 +1,29 @@
+name: Prepare cleaned game artwork
+on:
+  push:
+    paths:
+      - 'scripts/rebuild-art.py'
+      - '.github/workflows/prepare-art.yml'
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install Pillow
+        run: python -m pip install pillow
+      - name: Normalize cutouts and create waffle cup
+        run: python scripts/rebuild-art.py
+      - name: Commit tested artwork
+        run: |
+          git add -- '*.png'
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Normalize game cutouts and add raster waffle cup (test)"
+            git push
+          fi
