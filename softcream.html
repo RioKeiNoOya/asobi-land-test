@@ -6,11 +6,11 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-
 
 /* v25 iPhone */
 @media(max-width:700px) and (orientation:portrait){html,body{height:100%;overflow:hidden}.layout{grid-template-columns:1fr!important;grid-template-rows:minmax(180px,40%) minmax(0,60%)!important;height:calc(100dvh - 55px)!important}.preview{min-height:0!important}.menu{border-left:0!important;border-top:3px solid #f5d4a1;overflow-y:auto!important;padding:6px!important}.steps{overflow-x:auto!important}.steps button{flex-shrink:0}.choices{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important}.choice{min-height:55px!important}.heading{font-size:15px!important;margin:4px 0!important}.actions{position:sticky;bottom:0;background:#fffdf8;padding:4px 0}.primary,.secondary{padding:9px!important;font-size:14px!important}}
-.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #cone image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #cone{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}</style>
+.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #cone image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #cone{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}.preview #ice image{image-rendering:auto}.choice .scoop-thumb image{image-rendering:auto}</style>
 <header><a href="./index.html" style="color:#633d2a;text-decoration:none;font-weight:bold">← あそびランド</a><h1>🍦 ちいさなソフトクリームやさん</h1><button class="secondary" onclick="reset()">はじめから</button></header>
 <main class="layout"><section class="preview" id="preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 430" aria-label="ソフトクリームのプレビュー">
 <ellipse cx="125" cy="401" rx="79" ry="13" fill="#d9c6aa"/><rect x="93" y="369" width="64" height="17" rx="7" fill="#aab9c1"/><rect x="119" y="334" width="12" height="40" fill="#aab9c1"/><ellipse cx="125" cy="332" rx="53" ry="12" fill="#8fa3af"/>
-<g id="ice"></g><g id="cone"></g><g id="sauce"></g><g id="sprinkle"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
+<g id="cone"></g><g id="ice"></g><g id="sauce"></g><g id="sprinkle"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
 <section class="menu"><nav class="steps" id="steps"></nav><h2 class="heading" id="heading"></h2><div id="mixControls" style="display:none;justify-content:center;gap:10px;margin:5px"><button id="mixOne" onclick="state.mix=false;state.flavor2=null;render()">1しょく</button><button id="mixTwo" onclick="state.mix=true;state.flavor2=null;render()">ミックス（2しょく）</button></div><div class="choices" id="choices"></div><div class="page-nav" id="pageNav"><button onclick="pageChange(-1)">◀ まえ</button><b id="pageCount">1 / 1</b><button onclick="pageChange(1)">つぎ ▶</button></div><div id="customArea"><label>かざりの イラストを とうろく <input type="file" accept="image/*" id="upload" multiple></label><div id="customManage"></div><div class="tiny">とうろくした画像はこの端末のブラウザに保存します。</div></div><div class="actions"><button class="secondary" onclick="back()">◀ まえ</button><button class="primary" onclick="next()">つぎへ ▶</button><button class="secondary" onclick="save()">📷 ほぞん</button></div><p class="tiny" id="note"></p></section></main>
 <script>
 const steps=['コーン','まきかた','あじ','ソース','かざり'];let step=0, page=0, savedSignature='',decors=[],serial=0;
@@ -41,43 +41,30 @@ function tint(hex,factor){
  let a=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
  return '#'+a.map(v=>Math.max(0,Math.min(255,Math.round(factor>0?v+(255-v)*factor:v*(1+factor)))).toString(16).padStart(2,'0')).join('');
 }
-function oneScoop(n,style=state.shape){
- const color=flavors[n][2], bright=tint(color,.48), shade=tint(color,-.29), deep=tint(color,-.47);
- const grad='<defs><linearGradient id="scoop'+n+'" x1="0" y1="0" x2="1" y2=".55"><stop stop-color="'+bright+'"/><stop offset=".38" stop-color="'+color+'"/><stop offset=".78" stop-color="'+color+'"/><stop offset="1" stop-color="'+shade+'"/></linearGradient></defs>';
- const fill='url(#scoop'+n+')';
- const stroke='stroke="'+deep+'" stroke-width="2.5" stroke-linejoin="round"';
- let graphic='';
- if(style===0){
-  // Round nozzle: three unmistakably round, smooth pillow-like tiers.
-  graphic='<path d="M71 196 C65 178 81 164 96 163 C83 145 92 128 109 124 C103 109 114 97 125 83 C139 100 147 112 140 125 C162 127 170 148 155 166 C176 168 187 185 179 198 L182 227 Q125 244 68 227 Z" fill="'+fill+'" '+stroke+'/>'+
-  '<ellipse cx="125" cy="199" rx="56" ry="27" fill="'+fill+'" '+stroke+'/>'+
-  '<ellipse cx="125" cy="159" rx="43" ry="24" fill="'+fill+'" '+stroke+'/>'+
-  '<ellipse cx="125" cy="125" rx="30" ry="20" fill="'+fill+'" '+stroke+'/>'+
-  '<path d="M120 113 Q127 86 125 72 Q139 88 133 113" fill="'+fill+'" '+stroke+'/>'+
-  '<path d="M87 187 Q106 174 137 184 M99 149 Q118 139 139 146" stroke="'+bright+'" stroke-width="6" opacity=".72" fill="none" stroke-linecap="round"/>';
- }else if(style===1){
-  // Classic medium star: spiral fluted soft-serve with multiple broad turns.
-  graphic='<path d="M71 227 Q59 204 78 183 Q70 162 95 146 Q91 120 111 108 Q102 88 125 47 Q143 72 143 92 Q160 108 151 130 Q177 150 161 169 Q194 187 178 211 L182 227 Q125 241 71 227Z" fill="'+fill+'" '+stroke+'/>'+
-  '<path d="M79 215 Q123 237 174 213 Q180 202 166 195 Q112 210 85 197 Q73 191 81 180 Q115 195 157 174 Q172 163 155 154 Q112 172 91 153 Q82 144 96 135 Q124 147 147 127 Q156 117 139 110 Q118 121 109 107 Q104 101 117 95 Q131 101 139 88" fill="none" stroke="'+deep+'" stroke-width="7" opacity=".52" stroke-linecap="round"/>'+
-  '<path d="M78 203 Q117 220 162 201 M90 169 Q120 181 153 160 M108 123 Q127 131 140 117" fill="none" stroke="'+bright+'" stroke-width="8" opacity=".83" stroke-linecap="round"/>';
- }else{
-  // Small star tip: tall narrow sharp flutes, ridges all the way to the point.
-  graphic='<path d="M65 226 Q69 200 86 182 Q78 158 96 142 Q89 122 109 108 Q106 84 119 64 L125 35 L131 64 Q151 84 141 108 Q162 121 152 143 Q172 160 164 183 Q185 200 185 226 Q125 241 65 226Z" fill="'+fill+'" '+stroke+'/>'+
-  '<path d="M125 38 Q113 94 89 151 Q77 184 72 225 M125 38 Q120 100 108 155 L95 231 M125 38 Q126 105 126 158 L125 237 M125 38 Q136 104 143 157 L155 231 M125 38 Q148 101 162 163 L179 226" fill="none" stroke="'+deep+'" stroke-width="5" opacity=".68" stroke-linecap="round"/>'+
-  '<path d="M115 87 Q119 118 109 153 L101 211 M132 85 Q139 120 143 154 L150 211" fill="none" stroke="'+bright+'" stroke-width="5" opacity=".82" stroke-linecap="round"/>'+
-  '<path d="M78 192 Q125 206 173 192 M91 155 Q125 171 158 155 M105 116 Q125 127 146 116" fill="none" stroke="'+shade+'" stroke-width="4" opacity=".56"/>';
- }
- return grad+graphic;
+
+function flavorFilter(n){
+ const hex=flavors[n][2];
+ const c=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255);
+ const id='flavorTint'+n;
+ return '<filter id="'+id+'" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+c[0]+' 0 0 0 0 0 '+c[1]+' 0 0 0 0 0 '+c[2]+' 0 0 0 0 0 1 0"/></filter>';
+}
+function icePicture(n,shape=state.shape){
+ const files=['soft-round.png','soft-classic.png','soft-fine.png'];
+ const src=files[shape]||files[1];
+ return '<image href="'+src+'" x="62" y="42" width="126" height="192" preserveAspectRatio="none" filter="url(#flavorTint'+n+')"/>';
+}
+function oneScoop(n,shape=state.shape){
+ return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape);
 }
 function iceSvg(){
  if(state.mix&&state.flavor2!==null&&state.flavor2>=0){
-  return '<defs><clipPath id="scoopLeft"><rect x="55" y="25" width="70" height="218"/></clipPath><clipPath id="scoopRight"><rect x="125" y="25" width="70" height="218"/></clipPath></defs>'+
-    '<g clip-path="url(#scoopLeft)">'+oneScoop(state.flavor)+'</g>'+
-    '<g clip-path="url(#scoopRight)">'+oneScoop(state.flavor2)+'</g>';
+  return '<defs><clipPath id="scoopLeft"><rect x="57" y="34" width="68" height="210"/></clipPath>'+
+   '<clipPath id="scoopRight"><rect x="125" y="34" width="68" height="210"/></clipPath></defs>'+
+   '<g clip-path="url(#scoopLeft)">'+oneScoop(state.flavor)+'</g>'+
+   '<g clip-path="url(#scoopRight)">'+oneScoop(state.flavor2)+'</g>';
  }
  return oneScoop(state.flavor);
 }
-
 function sauceSvg(){let s=state.sauce;if(!s)return '';let c=['','#6e3428','#e85b7b','#fffdf0'][s];return `<path d="M101 155 Q115 141 125 145 Q141 136 150 158 Q162 171 151 179 L148 199 Q144 204 141 197 L138 178 Q124 187 116 176 L110 198 Q106 205 102 196Z" fill="${c}" stroke="#ffffff55" stroke-width="2"/>`}
 function sprinklesSvg(){if(!state.sprinkles)return '';let s='';for(let i=0;i<24;i++){let x=83+(i*37)%86,y=163+(i*29)%78;s+=`<rect x="${x}" y="${y}" width="9" height="3" rx="1" transform="rotate(${i*31} ${x} ${y})" fill="${['#ff5786','#3e9de0','#f1c22b','#72b45b'][i%4]}"/>`}return s}
 function render(){document.getElementById('cone').innerHTML=coneSvg();document.getElementById('ice').innerHTML=iceSvg();document.getElementById('sauce').innerHTML=sauceSvg();document.getElementById('sprinkle').innerHTML=sprinklesSvg();document.getElementById('steps').innerHTML=steps.map((s,i)=>`<button class="${step===i?'active':''}" onclick="step=${i};page=0;render()">${i+1}. ${s}</button>`).join('');document.getElementById('heading').textContent=['コーンを えらぼう','まきかたを えらぼう','あじを えらぼう','ソースを かけよう','すきな かざりを のせよう'][step];document.getElementById('mixControls').style.display=step===2?'flex':'none';document.getElementById('mixOne').classList.toggle('active',!state.mix);document.getElementById('mixTwo').classList.toggle('active',state.mix);let opts=currentOptions(),pages=Math.max(1,Math.ceil(opts.length/10));page=Math.min(page,pages-1);document.getElementById('pageNav').style.display=pages>1?'flex':'none';document.getElementById('pageCount').textContent=(page+1)+' / '+pages;document.getElementById('choices').innerHTML=opts.slice(page*10,page*10+10).map((o,j)=>{let i=j+page*10;let sel=(step===0&&state.cone===i)||(step===1&&state.shape===i)||(step===2&&(state.flavor===i||state.mix&&state.flavor2===i))||(step===3&&(i===4?state.sprinkles:state.sauce===i));let bg=step===2?o[2]:'#fff0d6';let decorArt=step===4?({0:"ai-strawberry.png",1:"deco-cherry.png",2:"ai-banana.png",3:"ai-donut.png",4:"deco-wafer.png",6:"deco-star.png",7:"deco-heart.png"}[i]||null):null;let previewArt=step===0?(i===5?null:"cone-raster-"+Math.min(i,4)+".png"):null;let previewSvg=step===1?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 29 134 210">'+oneScoop(0,i)+'</svg>':step===0&&i===5?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 202 134 130">'+coneSvg(5)+'</svg>':null;return `<button class="choice ${sel?'selected':''}" style="background:${bg}" onclick="choose(${i})">${o[2]&&step===4?`<img src="${o[2]}" style="width:52px;height:52px;object-fit:contain">`:(decorArt||previewArt)?`<img src="${decorArt||previewArt}" alt="" style="width:62px;height:62px;object-fit:contain">`:previewSvg?previewSvg:`<span class="emoji">${o[1]}</span>`}<span>${o[0]}</span></button>`}).join('');document.getElementById('customArea').style.display=step===4?'block':'none';if(step===4)manageCustom();document.getElementById('note').textContent=step===4?'かざりは10こまで。ゴミばこに うごかすと けせるよ。':step===2&&state.mix?'① ひだり、② みぎ のじゅんに あじを えらんでね':'えらぶと ひだりの アイスが かわるよ。';let layer=document.getElementById('decorLayer');layer.innerHTML='';decors.forEach(d=>{let el=document.createElement('div');el.className='decor';el.style.cssText=`left:${d.x}%;top:${d.y}%;pointer-events:auto`;el.innerHTML=d.src?`<img src="${d.src}">`:d.emoji;el.title=d.label+'（ゴミ箱にドラッグして消す）';el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);beep(380);let r=document.getElementById('preview').getBoundingClientRect();const trash=document.getElementById('trashZone');let moved=false;el.onpointermove=ev=>{moved=true;d.x=Math.max(2,Math.min(85,(ev.clientX-r.left)/r.width*100));d.y=Math.max(5,Math.min(85,(ev.clientY-r.top)/r.height*100));el.style.left=d.x+'%';el.style.top=d.y+'%';let t=trash.getBoundingClientRect();trash.classList.toggle('hot',ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18)};el.onpointerup=ev=>{el.onpointermove=null;let t=trash.getBoundingClientRect();let hit=ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18;trash.classList.remove('hot');if(hit&&moved){decors=decors.filter(x=>x.id!==d.id);beep(240);render()}};el.onpointercancel=()=>{el.onpointermove=null;trash.classList.remove('hot')}};layer.append(el)})}
