@@ -17,6 +17,15 @@ const { chromium } = require('playwright');
   label=await page.locator('#colorParent .add-btn').boundingBox();
   if(!label||label.height>90)throw Error('Oversized coloring button '+JSON.stringify({viewport,label}));
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
+  await page.evaluate(async()=>{
+   const files=['soft-round.png','soft-classic.png','soft-fine.png','cone-waffle-cup-raster.png'];
+   await Promise.all(files.map(src=>new Promise((resolve,reject)=>{
+    const im=new Image();
+    im.onload=()=>im.naturalWidth>0?resolve():reject(Error('Zero-size artwork: '+src));
+    im.onerror=()=>reject(Error('Cannot decode artwork: '+src));
+    im.src=src+'?smoke=4';
+   })));
+  });
   for(let i=0;i<3;i++){
    await page.evaluate(i=>{state.shape=i;render()},i);
    const image=page.locator('#ice image');
