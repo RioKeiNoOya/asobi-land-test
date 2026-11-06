@@ -1,0 +1,25 @@
+name: Improve soft serve image rendering
+on:
+  push:
+    paths:
+      - scripts/enhance-soft.py
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install pillow
+      - run: python scripts/enhance-soft.py
+      - name: Commit updated PNGs
+        run: |
+          git add soft-round.png soft-classic.png soft-fine.png
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Improve soft-serve raster presentation"
+            git push
+          fi
