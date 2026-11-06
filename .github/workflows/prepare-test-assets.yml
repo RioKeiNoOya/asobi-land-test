@@ -1,0 +1,61 @@
+name: Prepare test assets
+on:
+  push:
+    paths:
+      - .github/workflows/prepare-test-assets.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install raster processing
+        run: python -m pip install --quiet pillow cairosvg
+      - name: Make raster waffle cup and inspect cutouts
+        shell: bash
+        run: |
+          python - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import cairosvg
+          svg = """<svg xmlns="http://www.w3.org/2000/svg" width="600" height="520" viewBox="0 0 600 520">
+          <defs>
+          <linearGradient id="shell" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#ffe29c"/><stop offset=".34" stop-color="#eaa64c"/><stop offset=".74" stop-color="#be7832"/><stop offset="1" stop-color="#94501f"/></linearGradient>
+          <radialGradient id="inside"><stop stop-color="#6a381b"/><stop offset=".85" stop-color="#ac6027"/><stop offset="1" stop-color="#f4b76d"/></radialGradient>
+          <pattern id="waffle" width="45" height="45" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V45M0 0H45" stroke="#8b4a1b" stroke-width="7" opacity=".6"/><path d="M6 7V44M7 6H44" stroke="#ffe7a2" stroke-width="3" opacity=".55"/></pattern>
+          </defs>
+          <path d="M76 140 Q300 112 524 140 L485 356 Q474 408 409 424 Q303 460 188 424 Q118 405 108 350Z" fill="url(#shell)" stroke="#a5692b" stroke-width="8"/>
+          <path d="M76 140 Q300 112 524 140 L485 356 Q474 408 409 424 Q303 460 188 424 Q118 405 108 350Z" fill="url(#waffle)" opacity=".73"/>
+          <path d="M86 176 Q298 223 514 176" stroke="#ffe8a2" stroke-width="17" opacity=".75" fill="none"/>
+          <ellipse cx="300" cy="145" rx="224" ry="66" fill="#e2a35d" stroke="#a2632e" stroke-width="8"/>
+          <ellipse cx="300" cy="136" rx="197" ry="47" fill="url(#inside)"/>
+          <path d="M94 116 Q306 59 507 116" stroke="#ffdfa1" stroke-width="17" fill="none" stroke-linecap="round"/>
+          <path d="M92 155 Q307 218 509 155" stroke="#a9672d" stroke-width="12" fill="none" opacity=".7"/>
+          <path d="M131 253 Q169 364 231 397" stroke="#ffe0a0" stroke-width="13" opacity=".43" fill="none" stroke-linecap="round"/>
+          </svg>"""
+          cairosvg.svg2png(bytestring=svg.encode(),write_to="cone-raster-5.png",output_width=600,output_height=520)
+          files=sorted(set(Path('.').glob('piece-*.png')) | set(Path('.').glob('deco-*.png')) | set(Path('.').glob('ai-*.png')) | set(Path('.').glob('cone-raster-*.png')))
+          lines=['Asset alpha audit - full report; edge touches need review, not automatic cropping.']
+          for file in files:
+              try:
+                  im=Image.open(file).convert('RGBA')
+                  alpha=im.getchannel('A')
+                  b=alpha.getbbox()
+                  if b is None:
+                      lines.append(f'{file}: EMPTY')
+                      continue
+                  w,h=im.size
+                  edge=(b[0] < 2 or b[1] < 2 or b[2] > w-2 or b[3] > h-2)
+                  lines.append(f'{file}: {w}x{h}, bounds={b}, edge_touch={edge}')
+              except Exception as e: lines.append(f'{file}: ERROR {e}')
+          Path('assets-audit.txt').write_text('\n'.join(lines)+'\n')
+          PY
+      - name: Save generated assets
+        run: |
+          git add cone-raster-5.png assets-audit.txt
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "Generate raster waffle cup and audit alpha cutouts"
+            git push
+          fi
