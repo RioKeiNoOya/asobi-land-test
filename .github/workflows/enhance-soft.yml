@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - scripts/enhance-soft.py
+      - .github/workflows/enhance-soft.yml
   workflow_dispatch:
 permissions:
   contents: write
