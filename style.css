@@ -1,0 +1,242 @@
+:root{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN",sans-serif;color:#6d321f;background:#fff2bc}*{box-sizing:border-box}body{margin:0;overscroll-behavior:none}button{font:inherit;cursor:pointer;border:0;border-radius:18px;font-weight:800;color:#7b3425;background:#ffe38a;padding:12px 18px;touch-action:manipulation}button:active{transform:scale(.97)}button.primary,.add-btn{background:#f34a3a;color:white}header{height:62px;background:#f44c38;color:white;display:flex;align-items:center;justify-content:space-between;padding:8px 15px;gap:8px}header strong{font-size:clamp(18px,3vw,29px);white-space:nowrap}.head-right{display:flex;gap:7px}header button{font-size:clamp(12px,1.8vw,17px);padding:9px 12px;background:#fff2c0}.hidden{display:none!important}main{height:calc(100dvh - 62px);overflow:hidden}.screen{height:100%;padding:12px 18px;overflow:auto}.hero{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 25% 25%,#fff6ca,transparent 45%),linear-gradient(135deg,#ffba49,#ffe789);border-radius:24px}.hero h1{font-size:clamp(30px,6vw,65px);color:#e94435;margin:0;text-shadow:2px 3px white}.hero p{font-size:clamp(14px,2.5vw,23px);font-weight:800}.sun{font-size:42px}.game-tile{font-size:60px;display:flex;flex-direction:column;align-items:center;border:6px solid white;box-shadow:0 8px 0 #c8372e;background:#ff5746;color:white;min-width:185px}.game-tile span{font-size:27px}h2{margin:8px 0 15px}.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;max-width:850px;margin:auto}.tile{position:relative;aspect-ratio:1;background:white;border:5px solid #fff;border-radius:18px;overflow:hidden;box-shadow:0 3px 0 #e4ba72;padding:0}.tile img{width:100%;height:100%;object-fit:cover}.tile .delete{position:absolute;top:4px;right:4px;background:#e63d32;color:white;border-radius:50%;font-size:15px;padding:6px 10px}.empty{text-align:center;font-size:22px;line-height:2;margin:9vh 0}.helper{text-align:center;font-size:13px}.play-layout{height:100%;display:grid;grid-template-columns:minmax(110px,27%) minmax(0,1fr);gap:16px;max-width:1150px;margin:auto;align-items:start}.reference{display:flex;flex-direction:column;align-items:center;padding-top:15px}.tag{font-size:clamp(12px,1.9vw,18px);font-weight:900;margin:0 0 7px;text-align:center}.reference img{width:100%;max-width:250px;aspect-ratio:1;object-fit:contain;border:6px solid white;border-radius:14px}.game-area{height:100%;min-height:0;display:flex;flex-direction:column;align-items:center}.board{position:relative;flex-shrink:0;width:min(100%,calc((100dvh - 110px)*.58),460px);aspect-ratio:1;border:4px solid #b96b37;background:#fff8dc;border-radius:8px;overflow:hidden}.board #ghost,.board #cells{position:absolute;inset:0}.board #ghost{background-size:100% 100%;opacity:0;pointer-events:none}.board.hinted #ghost{opacity:.25}#cells{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr)}.cell{border:1px dashed #c99d71;background-size:calc(var(--grid-size,3)*100%) calc(var(--grid-size,3)*100%);background-repeat:no-repeat}.tray{width:100%;flex:1;min-height:0;display:grid;grid-template-columns:repeat(var(--tray-cols,5),minmax(0,1fr));grid-template-rows:repeat(var(--tray-rows,2),minmax(0,1fr));gap:5px;align-content:center;justify-items:center;padding:8px 2px}.piece{height:100%;max-height:100%;aspect-ratio:1;max-width:100%;border:3px solid white;border-radius:7px;background-repeat:no-repeat;background-size:calc(var(--grid-size,3)*100%) calc(var(--grid-size,3)*100%);box-shadow:0 2px 3px #0002;touch-action:none}.tray{--grid-size:3}.slot{width:100%;height:100%;min-height:0;display:flex;align-items:center;justify-content:center}.drag-piece{position:fixed;z-index:99;pointer-events:none;border:3px solid white;border-radius:7px;box-shadow:0 7px 20px #0006;background-repeat:no-repeat;background-size:300% 300%}.overlay{position:fixed;inset:0;background:#0009;display:flex;align-items:center;justify-content:center;z-index:50;padding:12px}.dialog{position:relative;background:#fff6d4;border:6px solid white;border-radius:25px;padding:16px;max-height:96dvh;overflow:auto;text-align:center;width:min(95vw,520px)}.dialog h2{margin:0}.dialog p{font-size:13px}.dialog canvas{width:min(52vh,78vw,420px);height:min(52vh,78vw,420px);touch-action:none;background:white;border:2px solid #ddad5e}.crop-controls{padding:8px}.crop-controls input{width:65%;vertical-align:middle}.actions{display:flex;justify-content:center;gap:12px;margin-top:10px;flex-wrap:wrap}.add-btn{display:inline-block;border-radius:18px;padding:13px 20px;font-weight:900;margin:8px 0 20px;cursor:pointer}.done img{height:min(37vh,300px);max-width:100%;aspect-ratio:1;object-fit:contain}.done h1{color:#f44b36;margin:4px}#confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden}.confetti{position:absolute;top:-30px;animation:fall 2.8s linear forwards;font-size:25px}@keyframes fall{to{transform:translateY(110vh) rotate(680deg)}}@media(max-height:650px) and (orientation:landscape){header{height:49px}main{height:calc(100dvh - 49px)}.screen{padding:5px 12px}.board{width:min(100%,calc((100dvh - 75px)*.57),400px)}.tray{padding:3px;gap:3px}.tag{margin-bottom:2px}.reference img{max-width:185px}}@media(orientation:portrait){#game:before{content:'📱 iPadを よこにしてね！';position:fixed;inset:62px 0 0;background:#fff0b6;display:grid;place-items:center;font-size:26px;font-weight:900;z-index:20}.tiles{gap:7px}.tile{border-width:2px}}
+
+.difficulty-wrap{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px}.difficulty-wrap h2{text-align:center;font-size:clamp(22px,3vw,34px)}.difficulty-options{display:flex;gap:clamp(8px,3vw,30px);width:min(100%,850px);justify-content:center}.difficulty-btn{flex:1;min-width:0;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;font-size:clamp(30px,5vw,55px);background:#ffca58;border:5px solid white;box-shadow:0 5px 0 #d89631}.difficulty-btn span{font-size:clamp(17px,2.7vw,28px)}.difficulty-btn small{font-size:clamp(13px,1.8vw,18px)}
+
+#lock{touch-action:none!important;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-user-drag:none;overscroll-behavior:contain}
+
+/* Add-on games and universal touch feedback */
+button:active,.add-btn:active{filter:brightness(.77)!important}button.chosen{background:#f67555;color:#fff}button:disabled{opacity:.38}img,.piece,.tile{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}.piece{touch-action:none}.board{height:auto!important;aspect-ratio:1/1!important;min-height:0!important}.cell{min-width:0;min-height:0;aspect-ratio:1}.slot{min-width:0;min-height:0}.piece{width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:1/1;flex:0 1 auto;align-self:center}.tray{grid-auto-flow:row;overflow:hidden}.game-menu{display:flex;flex-wrap:wrap;justify-content:center;gap:12px;margin:12px}.game-menu .game-tile{font-size:clamp(30px,5vw,50px);min-width:clamp(130px,18vw,190px);padding:8px}.game-menu .game-tile span{font-size:clamp(15px,2.3vw,24px)}.hero{min-height:100%;height:auto;padding:12px}.hero h1{font-size:clamp(26px,5vw,52px)}.color-layout{display:flex;gap:12px;height:100%}.paint-side{flex:1;min-width:0;display:flex;flex-direction:column}.paint-tools{display:flex;gap:5px;flex-wrap:wrap;justify-content:center}.paint-tools button,.paint-tools select{padding:7px 9px;font-size:clamp(11px,1.5vw,16px);border-radius:10px}.paint-stage,.trace-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}.paint-stage canvas,.trace-stage canvas{height:min(100%,calc(100dvh - 145px));max-width:100%;aspect-ratio:1/1;object-fit:contain;background:white;border:4px solid #fff;border-radius:12px;touch-action:none}.palette{width:clamp(155px,25vw,265px);display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;align-content:center}.swatch{padding:0;aspect-ratio:1;border:3px solid white;border-radius:50%;min-width:0}.swatch.chosen{outline:3px solid #f44b36;outline-offset:1px}.kana-top{display:flex;gap:5px;align-items:center}.kana-top button,.kana-switch button,.kana-extra button{padding:7px 10px;border-radius:11px}.kana-compose{background:white;border-radius:12px;flex:1;min-height:48px;font-size:clamp(20px,3vw,34px);padding:5px 10px;overflow:hidden;white-space:nowrap}.kana-switch{display:flex;justify-content:center;gap:9px;margin:8px 0}.kana-grid{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));gap:5px;height:calc(100% - 164px);min-height:150px}.kana-grid button{padding:0;min-height:0;font-size:clamp(15px,3vw,34px);border:3px solid white;border-radius:11px;background:#ffcf6c}.kana-grid button:active{background:#e4a43b}.kana-grid button:disabled{opacity:.2}.kana-extra{display:flex;justify-content:center;gap:10px;margin-top:6px}.trace-levels{display:grid;grid-template-columns:repeat(3,1fr);gap:15px;max-width:850px;margin:5vh auto}.trace-levels button{font-size:clamp(18px,3vw,27px);min-height:100px;background:#ffca58;border:4px solid white}.trace-toolbar{display:flex;gap:12px;justify-content:center;align-items:center}.trace-stage{height:calc(100% - 100px)}.trace-stage canvas{height:min(100%,calc(100dvh - 155px))}#traceStatus{margin:3px}#kanaStatus{margin:3px}@media(max-height:650px) and (orientation:landscape){.game-menu .game-tile{font-size:32px;min-width:135px}.game-menu .game-tile span{font-size:17px}.hero p{margin:5px}.paint-stage canvas{height:min(100%,calc(100dvh - 110px))}.kana-grid{height:calc(100% - 139px)}.kana-compose{min-height:38px}.trace-levels{margin:2vh auto}.trace-levels button{min-height:75px}}
+.slot{container-type:size}.piece{width:min(100cqw,100cqh);height:min(100cqw,100cqh);max-width:100%;max-height:100%;flex-shrink:0}@supports not (width: 1cqw){.piece{width:100%;height:100%;max-height:100%;max-width:100%;aspect-ratio:1}}
+
+/* 2026-11 usability update */
+html,body,#app,button,.screen,.hero,.tile{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+button,img{ -webkit-user-drag:none }
+.brush-buttons{display:flex;align-items:center;gap:5px}
+.brush-choice{display:grid;place-items:center;width:39px;height:39px;padding:2px!important;background:#ffe4a0;border:2px solid #fff}
+.brush-choice.chosen{background:#ff8e69;box-shadow:inset 0 0 0 2px #d44b36}
+.brush-dot{display:block;width:var(--dot);height:var(--dot);border-radius:50%;background:#713b31}
+.kana-switch{align-items:center;gap:clamp(24px,6vw,85px)}
+.kana-tabs{display:flex;gap:9px}
+#kanaScript{background:#f8a6d1;color:#742956;border:2px solid #fff}
+#kanaScript:active{background:#e67bb6}
+.kana-grid button.kana-special{background:#f8a6d1;color:#742956}
+.kana-grid button.kana-special:active{background:#e67bb6}
+/* Home image includes all four button illustrations; transparent semantic hotspots above them. */
+#home{padding:0;display:flex;align-items:center;justify-content:center;background:#8bd5f7}
+#home .hero{position:relative;aspect-ratio:1648/928;width:min(100%,calc((100dvh - 62px)*1648/928));height:auto;min-height:0;padding:0;background:#a5e4ff url('home-park.webp') center/100% 100% no-repeat;border-radius:0;overflow:hidden}
+#home .hero>.sun,#home .hero>h1,#home .hero>p{display:none}
+#home .game-menu{position:absolute;inset:0;display:block;margin:0;pointer-events:none}
+#home .game-menu .game-tile{position:absolute;top:47.5%;width:18.4%;height:34%;min-width:0;padding:0;display:block;opacity:0;pointer-events:auto;border:0;border-radius:16%}
+#home .game-menu .game-tile:nth-child(1){left:12.2%}
+#home .game-menu .game-tile:nth-child(2){left:31.3%}
+#home .game-menu .game-tile:nth-child(3){left:50.7%}
+#home .game-menu .game-tile:nth-child(4){left:70.1%}
+#home .game-menu .game-tile:active{opacity:.2;background:#682b3c;filter:none!important}
+@media(max-height:650px) and (orientation:landscape){#home .hero{width:min(100%,calc((100dvh - 49px)*1648/928))}}
+
+/* Kana must stay stationary on the iPad even during touch swipes. */
+#kana{overflow:hidden!important;overscroll-behavior:none;touch-action:none;display:flex;flex-direction:column;min-height:0}
+#kana.hidden{display:none!important}
+#kana .kana-top,#kana .kana-switch,#kana #kanaStatus{flex-shrink:0}
+#kana .kana-grid{flex:1 1 0;min-height:0;height:auto!important;overflow:hidden;touch-action:none}
+#kana .kana-grid button{touch-action:manipulation}
+#kana .kana-switch{flex-shrink:0}
+#kana .kana-compose{flex:1 1 auto;min-width:0}
+
+/* Block Safari native drag/callouts while keeping puzzle Pointer Events. */
+#game,#game *{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-user-drag:none!important;}
+#game .piece,#game .slot,#game .tray,#game .board{touch-action:none!important;}
+
+/* v5: fixed non-scrolling child game screens, galleries scroll only when needed */
+html,body,#app{height:100%;overflow:hidden;overscroll-behavior:none}
+#home,#difficulty,#game,#coloring,#kana,#traceMenu,#tracing{overflow:hidden!important;overscroll-behavior:none;touch-action:pan-x pan-y}
+#coloring,#tracing,#game{touch-action:none}
+#coloring canvas,#tracing canvas{touch-action:none}
+.trace-confetti-layer{position:absolute;inset:0;pointer-events:none;z-index:30;overflow:hidden}
+#tracing{position:relative}
+.trace-confetti{position:absolute;top:-40px;font-size:22px;animation:trace-fall 2.7s linear forwards}
+@keyframes trace-fall{to{transform:translateY(110vh) rotate(720deg);opacity:.1}}
+
+/* v6: colorful kana keys and the わ・を・゛・゜・ん row */
+#kana .kana-grid{min-height:0;flex:1 1 0}
+#kana .kana-grid button:not(.kana-special):not(:disabled){background:var(--kana-color,#ffcf6c)}
+#kana .kana-grid button:not(.kana-special):active{filter:brightness(.78)}
+#kana .kana-grid button:nth-child(10n + 1){--kana-color:#ffb7b7}
+#kana .kana-grid button:nth-child(10n + 2){--kana-color:#ffdb9e}
+#kana .kana-grid button:nth-child(10n + 3){--kana-color:#fff0a5}
+#kana .kana-grid button:nth-child(10n + 4){--kana-color:#c9e8ad}
+#kana .kana-grid button:nth-child(10n + 5){--kana-color:#a9e5db}
+#kana .kana-grid button:nth-child(10n + 6){--kana-color:#b4dbff}
+#kana .kana-grid button:nth-child(10n + 7){--kana-color:#c7c8ff}
+#kana .kana-grid button:nth-child(10n + 8){--kana-color:#e1c4fa}
+#kana .kana-grid button:nth-child(10n + 9){--kana-color:#ffc6df}
+#kana .kana-grid button:nth-child(10n){--kana-color:#ffd4ac}
+#kana .kana-wa-row{display:flex;gap:7px;justify-content:center;align-items:stretch;flex:0 0 auto;height:clamp(34px,7vh,49px);margin-top:5px}
+#kana .kana-wa-row button{min-width:clamp(42px,8vw,78px);padding:2px 10px;border:3px solid white;border-radius:11px;background:#ffd7a2;font-size:clamp(18px,2.6vw,30px)}
+#kana .kana-wa-row .kana-mark{background:#f8a6d1;color:#742956}
+#kana .kana-wa-row button:active{filter:brightness(.77)}
+#kana .kana-wa-row button:disabled{opacity:.38}
+
+/* v7: large paint controls and integrated tenth kana column */
+#coloring .paint-tools{gap:8px;align-items:center;justify-content:center;padding:4px 0 7px}
+#coloring .paint-tools>button{min-height:51px;min-width:57px;padding:10px 13px;font-size:clamp(14px,1.8vw,19px);border-radius:14px}
+#coloring .brush-buttons{gap:7px}
+#coloring .brush-choice{width:52px;height:52px;min-width:52px;min-height:52px;border-radius:13px}
+#coloring .brush-dot{max-width:30px;max-height:30px}
+#kana .kana-grid{grid-template-columns:repeat(10,minmax(0,1fr));grid-template-rows:repeat(5,minmax(0,1fr));min-height:0}
+#kana .kana-grid .kana-mark{background:#f8a6d1!important;color:#742956}
+#kana .kana-grid .kana-mark:disabled{opacity:.5}
+@media(max-height:650px) and (orientation:landscape){#coloring .paint-tools>button{min-height:43px;padding:7px 9px;font-size:14px}#coloring .brush-choice{width:45px;height:45px;min-width:45px;min-height:45px}}
+
+/* v8: palette labels above color swatches, retain fixed-screen layout */
+#coloring .palette-side{width:clamp(155px,25vw,265px);display:flex;flex-direction:column;justify-content:center;gap:8px;min-width:0}
+#coloring .palette-side .palette{width:100%;min-width:0}
+#coloring .color-name-display{min-height:49px;text-align:center;background:#fff8df;border:2px solid #fff;border-radius:13px;padding:3px 5px;display:flex;flex-direction:column;justify-content:center}
+#paintColorName{font-size:clamp(15px,2.1vw,23px);font-weight:800;line-height:1.25}
+#paintColorEnglish{font-size:clamp(10px,1.3vw,13px);color:#755c48;line-height:1.3}
+#coloring .brush-buttons{display:flex;gap:4px}
+@media(max-height:650px) and (orientation:landscape){#coloring .palette-side{gap:4px}#coloring .color-name-display{min-height:37px;padding:1px 4px}}
+
+/* v9: persistent appearance for kana diacritic buttons, including disabled state. */
+#kana .kana-grid .kana-mark,#kana .kana-grid .kana-mark:disabled{background:#ffe6c5!important;color:#7b3425!important;opacity:1!important;filter:none;}
+#kana .kana-grid .kana-mark:active:not(:disabled){filter:brightness(.78)!important;}
+.home-version{position:absolute;bottom:clamp(8px,2vh,18px);left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;padding:5px 10px;background:#fffbe6e8;border-radius:13px;font-size:clamp(10px,1.1vw,13px);color:#684d39;font-weight:800;max-width:95%;white-space:nowrap;}
+#home .hero{position:relative;}
+.home-version button{font-size:clamp(11px,1.3vw,14px);padding:6px 10px;border-radius:9px;background:#ffe091;}
+.home-version small{flex-basis:100%;text-align:center;}
+
+/* v10: tappable bilingual name panel, large selected language */
+#paintNameSwitch{width:100%;cursor:pointer;appearance:none;-webkit-appearance:none;color:#3b3028;font-family:inherit;touch-action:manipulation;}
+#paintNameSwitch:active{filter:brightness(.94)}
+#paintNameSwitch #paintColorName{font-size:clamp(16px,2.3vw,25px)}
+#paintNameSwitch #paintColorEnglish{font-size:clamp(10px,1.3vw,14px)}
+/* Marks have a fixed pastel shade even when no previous kana is present */
+#kana .kana-grid button.kana-mark,#kana .kana-grid button.kana-mark:disabled{background:#ffe6c5!important;color:#7b3425!important;opacity:1!important;}
+#kana .kana-grid button.kana-mark:active:not(:disabled){background:#e8bb90!important;}
+
+/* v11: the small っ / ー keys match the pastel shade of the や column, regardless of state. */
+#kana .kana-grid button.kana-special:not(.kana-mark),#kana .kana-grid button.kana-special:not(.kana-mark):disabled{background:#eee0fa!important;color:#6a3b88!important;opacity:1!important;filter:none;}
+#kana .kana-grid button.kana-special:not(.kana-mark):active:not(:disabled){background:#d5b5ee!important;}
+
+/* v12: painting actions stay together below the canvas */
+#coloring .paint-side{position:relative}
+#coloring .paint-bottom-actions{display:flex;justify-content:center;align-items:center;gap:10px;flex-shrink:0;padding:4px 0 6px}
+#coloring .paint-bottom-actions button{font-size:clamp(13px,1.65vw,19px);min-height:42px;padding:7px 15px;border-radius:13px}
+#coloring .paint-stage canvas{height:min(100%,calc(100dvh - 200px))}
+#coloring .color-name-display{position:relative;padding-top:19px}
+#coloring .language-indicator{position:absolute;top:2px;right:6px;display:flex;gap:3px;font-size:11px;line-height:1.1}
+#coloring .language-indicator b{padding:2px 5px;border-radius:5px;color:#888;background:#e8e8e8;border:1px solid #ccc}
+#coloring .language-indicator b.selected{background:#ed638c;color:white;border-color:#d34c76;box-shadow:0 0 0 1px #d34c76}
+@media(max-height:650px) and (orientation:landscape){#coloring .paint-bottom-actions button{min-height:34px;padding:4px 10px;font-size:13px}#coloring .paint-stage canvas{height:min(100%,calc(100dvh - 160px))}}
+
+/* v13: home games and stable touch layout */
+.game-menu{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:stretch}.game-tile{min-height:90px;aspect-ratio:auto;touch-action:manipulation}.kana-top{min-height:56px;flex-shrink:0}.kana-compose{min-height:44px;max-height:44px;overflow:hidden}.kana-grid{min-height:0}#palette button{touch-action:manipulation}#paintSave{touch-action:none;user-select:none}@media(max-width:680px){.game-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}.game-tile{min-height:92px}}
+
+/* v14: visible navigation below the illustrated four-game home screen */
+#home{flex-direction:column;justify-content:center;gap:7px;overflow-y:auto;overflow-x:hidden;padding:5px 7px 9px!important}
+#home .hero{flex:0 0 auto;width:min(100%,calc((100dvh - 160px)*1648/928));max-width:100%;min-height:0}
+#home .new-game-strip{flex:0 0 auto;display:flex;justify-content:center;align-items:stretch;gap:clamp(5px,1.5vw,13px);width:min(100%,930px);margin:0 auto}
+#home .new-game-button{display:flex;align-items:center;justify-content:center;gap:8px;flex:1;min-width:0;padding:clamp(7px,1.3vw,12px);border:3px solid #fff;border-radius:19px;color:#fff;font-weight:900;font-size:clamp(22px,3.2vw,34px);line-height:1.1;text-decoration:none;box-shadow:0 4px 0 #a36d55;touch-action:manipulation}
+#home .new-game-button span{font-size:clamp(12px,1.8vw,21px);text-align:center}
+#home .new-game-button.soft{background:#f27b98}#home .new-game-button.shaved{background:#51a8d7}#home .new-game-button.shape{background:#54b88b}
+#home .new-game-button:active{filter:brightness(.85);transform:translateY(2px)}
+@media(orientation:portrait){#home{justify-content:flex-start}#home .hero{width:100%;max-width:100%}#home .new-game-strip{flex-direction:column;max-width:440px}#home .new-game-button{min-height:56px}}
+@media(max-height:520px) and (orientation:landscape){#home .hero{width:min(100%,calc((100dvh - 122px)*1648/928))}#home .new-game-button{padding:5px;font-size:21px}#home .new-game-button span{font-size:13px}}
+
+/* v15: no overlap; home image shrinks to leave room for a separate row */
+#home{display:flex!important;flex-direction:column!important;align-items:center;justify-content:center!important;overflow:hidden!important;gap:8px!important;padding:6px 10px!important;min-height:0}
+#home .hero{flex:0 1 auto!important;width:auto!important;height:min(70%,calc((100vw - 20px)*928/1648))!important;aspect-ratio:1648/928;max-width:100%!important;min-height:0!important;background-size:100% 100%!important}
+#home .new-game-strip{flex:0 0 auto!important;position:relative!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:9px!important;width:min(100%,900px)!important;margin:0!important;max-height:24%!important}
+#home .new-game-button{min-height:55px!important;max-height:94px!important;padding:7px!important;font-size:clamp(18px,3vw,32px)!important;line-height:1.1!important;white-space:normal!important}
+#home .new-game-button span{font-size:clamp(11px,1.7vw,19px)!important}
+@media(orientation:portrait){#home{justify-content:center!important}#home .hero{width:100%!important;height:auto!important;flex:0 1 auto!important}#home .new-game-strip{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}#home .new-game-button{min-height:64px!important}}
+
+/* v20: hidden must beat home display!important; seven visible, non-overlapping buttons */
+#home.hidden{display:none!important}
+#home{background:linear-gradient(#b8ecff,#fff0cb)!important;justify-content:center!important;gap:10px!important}
+#home .hero{width:min(100%,1000px)!important;height:100%!important;max-height:100%!important;aspect-ratio:auto!important;flex:1 1 0!important;min-height:0!important;overflow:hidden!important;background-image:linear-gradient(#ffffff30,#fff7d750),url('home-park.webp')!important;background-size:cover!important;background-position:center!important;display:flex!important;align-items:center!important;justify-content:center!important}
+#home .hero>.game-menu{position:relative!important;inset:auto!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:clamp(8px,1.5vw,17px)!important;width:min(95%,940px)!important;margin:0!important;pointer-events:auto!important;align-content:center!important}
+#home .hero .game-tile{position:static!important;opacity:1!important;min-height:clamp(95px,20vh,170px)!important;height:auto!important;width:auto!important;min-width:0!important;padding:10px 3px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;border:4px solid white!important;border-radius:20px!important;background:linear-gradient(#ffec7e,#f6b343)!important;box-shadow:0 5px 0 #a47b59!important;font-size:clamp(28px,5vw,55px)!important;color:#763f26!important}
+#home .hero .game-tile:nth-child(1){background:linear-gradient(#91e9ff,#4aa5f4)!important}
+#home .hero .game-tile:nth-child(2){background:linear-gradient(#ffed95,#ffba48)!important}
+#home .hero .game-tile:nth-child(3){background:linear-gradient(#ffd1e7,#f9a3cb)!important}
+#home .hero .game-tile:nth-child(4){background:linear-gradient(#c6f5a0,#7cda74)!important}
+#home .hero .game-tile span{font-size:clamp(13px,2.2vw,23px)!important}
+#home .new-game-strip{width:min(100%,940px)!important;max-height:none!important;flex:0 0 auto!important}
+#home .new-game-button{min-height:clamp(68px,15vh,120px)!important;max-height:none!important}
+#home .home-version{grid-column:1/-1;position:static!important;display:flex!important;gap:8px!important;justify-content:center!important;align-items:center!important;font-size:11px!important;max-height:30px!important}
+@media(orientation:portrait){#home .hero .game-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}#home .hero .game-tile{min-height:75px!important}#home .new-game-button{min-height:62px!important}}
+
+#tracing .trace-stage{position:relative}
+
+/* v23: Keep all seven menu actions independently clickable, without preprinted menu artwork. */
+#home .hero{background-image:linear-gradient(#ffffff36,#fff7d766),url('home-park.webp')!important}
+#home .game-menu{z-index:5!important}
+#home .game-tile{position:relative!important;inset:auto!important;pointer-events:auto!important;min-height:90px!important}
+#home .new-game-strip{z-index:6!important}
+#home .new-game-button{pointer-events:auto!important}
+
+/* v24: Never keep the home screen visible when an existing game is opened. */
+.screen.hidden,#home.screen.hidden{display:none!important;visibility:hidden!important;pointer-events:none!important}
+/* Remove the image with baked-in controls and make real, accessible buttons. */
+#home .hero{background-image:linear-gradient(#ffffff40,#fff5d666),url('home-park.webp')!important}
+#home .hero .game-menu{position:relative!important;z-index:10!important}
+#home .hero .game-tile{pointer-events:auto!important;touch-action:manipulation!important;cursor:pointer!important}
+#home .new-game-strip{position:relative!important;z-index:11!important}
+/* Preserve full-size game screens instead of allowing home layout rules to bleed. */
+main>.screen:not(#home):not(.hidden){display:flex;min-height:0;max-height:100%;overflow:hidden}
+
+/* v25: small iPhone portrait and landscape usability */
+@media (max-width:700px) {
+ header{height:48px;padding:5px 8px}header strong{font-size:17px}header button{font-size:12px;padding:6px 8px;border-radius:10px}
+ main{height:calc(100dvh - 48px)}
+ .screen{padding:7px;overflow:auto;-webkit-overflow-scrolling:touch}
+ #home{overflow-y:auto!important;justify-content:flex-start!important;padding:6px!important;gap:6px!important}
+ #home .hero{flex:0 0 auto!important;min-height:0!important;height:auto!important;max-height:none!important;padding:9px 5px!important;background-position:center top!important}
+ #home .hero .sun,#home .hero h1,#home .hero p{display:none!important}
+ #home .hero .game-menu{width:100%!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+ #home .hero .game-tile{min-height:68px!important;font-size:26px!important;padding:6px 2px!important;border-width:3px!important;box-shadow:0 3px 0 #a47b59!important}
+ #home .hero .game-tile span{font-size:13px!important}
+ #home .new-game-strip{grid-template-columns:repeat(3,minmax(0,1fr))!important;width:100%!important;gap:5px!important}
+ #home .new-game-button{min-height:64px!important;padding:5px 2px!important;font-size:22px!important;flex-direction:column;gap:2px!important}
+ #home .new-game-button span{font-size:11px!important}
+ #home .home-version{font-size:10px!important}
+ .tiles{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .difficulty-options{gap:7px;flex-wrap:wrap}
+ #game,#coloring,#tracing,#kana{overflow:auto!important}
+ .play-layout,.color-layout{max-height:none;min-height:0}
+ .paint-tools button,.trace-toolbar button{padding:6px;font-size:12px}
+ .kana-top{flex-wrap:wrap}.kana-grid button{min-height:36px}
+}
+@media(max-width:700px) and (orientation:landscape){
+ #home .hero .game-menu{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+ #home .hero .game-tile{min-height:56px!important;font-size:23px!important}
+ #home .new-game-button{min-height:44px!important;flex-direction:row}
+ #home .new-game-strip{max-height:none!important}
+}
+
+/* v31: illustrated home tiles; scale within existing layout */
+.new-game-button .menu-raster{width:clamp(38px,6.4vw,76px);height:clamp(38px,6.4vw,76px);object-fit:contain;display:block;flex:0 0 auto;filter:drop-shadow(0 2px 2px #0002)}
+@media(max-width:700px){.new-game-button .menu-raster{width:34px;height:34px}}
+
+/* v36: galleries must use normal grid flow; only active screens can receive taps. */
+main>#colorGallery:not(.hidden),main>#gallery:not(.hidden),main>#traceGallery:not(.hidden){display:block!important;overflow-y:auto!important}
+main>#coloring:not(.hidden){display:block!important;overflow:auto!important}
+#colorGallery .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:12px;width:100%;max-width:950px}
+#colorGallery .tile{touch-action:manipulation;min-height:105px}
+#paintCanvas{touch-action:none!important}
+#coloring .color-layout{min-height:0}
+@media(max-width:700px){#colorGallery .tiles{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}}
+
+
+/* Publish-ready home: the illustrated header contains NO preprinted game buttons.
+   The seven actual HTML controls have their own non-overlapping regions. */
+#home .hero{background:linear-gradient(180deg,#b4eaff 0%,#fff6d8 58%,#ffefce 100%)!important;isolation:isolate;padding:clamp(90px,24vw,250px) 12px 12px!important;display:flex!important;flex-direction:column!important;justify-content:flex-end!important;}
+#home .hero::before{content:"";position:absolute;left:0;top:0;width:100%;aspect-ratio:1648/428;background:url('home-park-header.webp') center top/100% 100% no-repeat;pointer-events:none;z-index:0;}
+#home .hero .game-menu{position:relative!important;z-index:2!important;flex:0 0 auto!important;align-self:center!important;width:min(96%,940px)!important;margin:auto auto 5px!important;}
+#home .hero .game-tile{position:relative!important;z-index:3!important;}
+@media(max-width:700px){#home .hero{padding:clamp(90px,26vw,120px) 6px 8px!important}#home .hero .game-menu{gap:7px!important;}}
+
+/* Final publication: version information stays inside its grid row, never covers menu links. */
+#home .home-version{transform:none!important;left:auto!important;right:auto!important;bottom:auto!important;position:relative!important;margin:4px auto 0!important;grid-column:1/-1!important;max-width:100%!important;white-space:normal!important;z-index:12!important;}
+#home .home-version button{min-height:26px!important;}
