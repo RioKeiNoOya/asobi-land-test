@@ -18,7 +18,7 @@ jobs:
         with:
           python-version: '3.11'
       - run: npm install --no-save playwright
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install chromium
       - name: Start local preview
         run: |
           nohup python -m http.server 8000 >/tmp/asobi-server.log 2>&1 &
