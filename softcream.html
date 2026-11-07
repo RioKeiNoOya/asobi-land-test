@@ -6,15 +6,15 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-
 
 /* v25 iPhone */
 @media(max-width:700px) and (orientation:portrait){html,body{height:100%;overflow:hidden}.layout{grid-template-columns:1fr!important;grid-template-rows:minmax(180px,40%) minmax(0,60%)!important;height:calc(100dvh - 55px)!important}.preview{min-height:0!important}.menu{border-left:0!important;border-top:3px solid #f5d4a1;overflow-y:auto!important;padding:6px!important}.steps{overflow-x:auto!important}.steps button{flex-shrink:0}.choices{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:4px!important}.choice{min-height:55px!important}.heading{font-size:15px!important;margin:4px 0!important}.actions{position:sticky;bottom:0;background:#fffdf8;padding:4px 0}.primary,.secondary{padding:9px!important;font-size:14px!important}}
-.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #cone image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #cone{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}.preview #ice image{image-rendering:auto}.choice .scoop-thumb image{image-rendering:auto}\n/* Preserve alpha edges, do not distort raster assets. */\n.preview #ice image,.preview #cone image{image-rendering:auto}\n</style>
+.preview svg{display:block;overflow:visible}.preview #ice image{transform-box:fill-box}.preview #coneBack image,.preview #coneFront image{image-rendering:auto}.choice{overflow:hidden}.choice img{width:54px!important;height:52px!important;max-width:100%!important;object-fit:contain}.choice .emoji{line-height:1;display:block;min-height:31px}.choice[data-choice-kind="flavor"] .emoji{font-size:32px}.preview #coneBack,.preview #coneFront{pointer-events:none}.preview #ice{pointer-events:none}.choice .scoop-thumb{height:54px;width:60px;max-width:90%;display:block}.choice{min-width:0}.preview #ice image{image-rendering:auto}.choice .scoop-thumb image{image-rendering:auto}\n/* Preserve alpha edges, do not distort raster assets. */\n.preview #ice image,.preview #coneBack image,.preview #coneFront image{image-rendering:auto}\n</style>
 <header><a href="./index.html" style="color:#633d2a;text-decoration:none;font-weight:bold">← あそびランド</a><h1>🍦 ちいさなソフトクリームやさん</h1><button class="secondary" onclick="reset()">はじめから</button></header>
 <main class="layout"><section class="preview" id="preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 430" aria-label="ソフトクリームのプレビュー">
 <ellipse cx="125" cy="401" rx="79" ry="13" fill="#d9c6aa"/><rect x="93" y="369" width="64" height="17" rx="7" fill="#aab9c1"/><rect x="119" y="334" width="12" height="40" fill="#aab9c1"/><ellipse cx="125" cy="332" rx="53" ry="12" fill="#8fa3af"/>
-<g id="cone"></g><g id="ice"></g><g id="sauce"></g><g id="sprinkle"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
+<g id="coneBack"></g><g id="ice"></g><g id="sauce"></g><g id="sprinkle"></g><g id="coneFront"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
 <section class="menu"><nav class="steps" id="steps"></nav><h2 class="heading" id="heading"></h2><div id="mixControls" style="display:none;justify-content:center;gap:10px;margin:5px"><button id="mixOne" onclick="state.mix=false;state.flavor2=null;render()">1しょく</button><button id="mixTwo" onclick="state.mix=true;state.flavor2=null;render()">ミックス（2しょく）</button></div><div class="choices" id="choices"></div><div class="page-nav" id="pageNav"><button onclick="pageChange(-1)">◀ まえ</button><b id="pageCount">1 / 1</b><button onclick="pageChange(1)">つぎ ▶</button></div><div id="customArea"><label>かざりの イラストを とうろく <input type="file" accept="image/*" id="upload" multiple></label><div id="customManage"></div><div class="tiny">とうろくした画像はこの端末のブラウザに保存します。</div></div><div class="actions"><button class="secondary" onclick="back()">◀ まえ</button><button class="primary" onclick="next()">つぎへ ▶</button><button class="secondary" onclick="save()">📷 ほぞん</button></div><p class="tiny" id="note"></p></section></main>
 <script>
 const steps=['コーン','まきかた','あじ','ソース','かざり'];let step=0, page=0, savedSignature='',decors=[],serial=0;
-const cones=[['ワッフル','🧇','#d4a36d'],['チョコワッフル','🍫','#78432c'],['カラフル','🌈','#efaf67'],['フラワー','🌼','#e3b77c'],['ハート','❤️','#d5a067'],['ワッフルカップ','🧇','#d7a46b']];
+const cones=[['ワッフル','🧇','#d4a36d'],['チョコワッフル','🍫','#78432c'],['カラフル','🌈','#efaf67'],['フラワー','🌼','#e3b77c'],['ビッグ','🍦','#d5a067'],['ワッフルカップ','🧇','#d7a46b']];
 const shapes=[['まるまる','☁️'],['ぐるぐる','🍦'],['ほそほそ','🧵']];
 const flavors=[['バニラ','🌼','#fff0d2'],['いちご','🍓','#f5a0bc'],['ラズベリー','🍓','#e93649'],['まっちゃ','🍃','#91ba72'],['チョコ','🍫','#8d5c40'],['ラムネ','🫧','#85d8f2'],['みかん','🍊','#f7a13d'],['ラベンダー','🪻','#bba3dd'],['レモン','🍋','#f4e34f']];
 const sauces=[['なし','🚫'],['チョコ','🍫'],['いちご','🍓'],['ホワイト','🥛'],['カラースプレー','🌈']];
@@ -25,9 +25,29 @@ function speak(t){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtteranc
 function beep(freq=500){try{let a=new (window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);o.frequency.value=freq;g.gain.setValueAtTime(.045,a.currentTime);g.gain.exponentialRampToValueAtTime(.001,a.currentTime+.13);o.start();o.stop(a.currentTime+.14)}catch{}}
 function pageChange(d){page=Math.max(0,Math.min(page+d,Math.ceil(currentOptions().length/10)-1));render()}function currentOptions(){return [cones,shapes,flavors,sauces,decorations.concat(customs.map(c=>[c.name,'🖼️',c.data]))][step]}function choose(i){beep();if(step===0){state.cone=i;speak(cones[i][0]+'コーン')}if(step===1){state.shape=i;speak(shapes[i][0])}if(step===2){if(state.mix){if(state.flavor2===null){state.flavor=i;state.flavor2=-1}else if(state.flavor2===-1){state.flavor2=i}else{state.flavor=i;state.flavor2=-1}}else{state.flavor=i} speak(flavors[i][0])}if(step===3){if(i===4){state.sprinkles=!state.sprinkles}else{state.sauce=i} speak(sauces[i][0])}if(step===4){let items=currentOptions();if(decors.length>=10){document.getElementById('toast').textContent='かざりは 10こまで！';return}let item=items[i];decors.push({id:++serial,label:item[0],emoji:item[1],src:item[2]||({0:'ai-strawberry.png',1:'deco-cherry.png',2:'ai-banana.png',4:'deco-wafer.png',6:'deco-star.png',7:'deco-heart.png',8:'deco-bow.png',}[i]||''),x:50+(decors.length%3-1)*13,y:27+Math.floor(decors.length/3)*9});speak(item[0]);}render()}
 
-function coneSvg(i=state.cone){
- if(i===5)return '<image href="cone-waffle-cup-raster.png" x="55" y="190" width="140" height="157" preserveAspectRatio="none"/>';
- return '<image href="cone-raster-'+Math.min(i,4)+'.png" x="60" y="207" width="130" height="180" preserveAspectRatio="none"/>';
+// Back layer provides the cone body; the forward lip is re-drawn after the ice.
+// Keeping both layers sourced from the same image avoids mismatched textures.
+const coneGeometry=[
+ {x:60,y:207,w:130,h:180,lip:224},
+ {x:60,y:207,w:130,h:180,lip:224},
+ {x:60,y:207,w:130,h:180,lip:225},
+ {x:60,y:207,w:130,h:180,lip:225},
+ {x:53,y:200,w:144,h:188,lip:224},
+ {x:55,y:190,w:140,h:157,lip:237}
+];
+function coneAsset(i=state.cone){
+ return i===5?'cone-waffle-cup-raster.png':'cone-raster-'+Math.min(i,4)+'.png';
+}
+function coneSvg(i=state.cone,foreground=false){
+ const p=coneGeometry[i],src=coneAsset(i);
+ const img='<image href="'+src+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="none"/>';
+ if(!foreground)return img;
+ // Clip just the *near* lip (not the cone interior behind the ice).
+ // The gentle U curve means the visible ice base sits inside the rim.
+ const rim='M '+p.x+' '+(p.lip-5)+' Q 125 '+(p.lip+18)+' '+(p.x+p.w)+' '+(p.lip-5)+
+   ' L '+(p.x+p.w)+' '+(p.lip+23)+' Q 125 '+(p.lip+42)+' '+p.x+' '+(p.lip+23)+' Z';
+ return '<defs><clipPath id="coneFrontClip"><path d="'+rim+'"/></clipPath></defs>'+
+   '<g clip-path="url(#coneFrontClip)">'+img+'</g>';
 }
 function tint(hex,factor){
  let a=[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16));
@@ -36,27 +56,9 @@ function tint(hex,factor){
 
 // Keep the original generated vanilla artwork unchanged. Other flavours retain the
 // original photographed highlights and shadows instead of multiplying RGB by a tint.
-function flavorFilter(n){
- // Vanilla keeps the untouched original art. For other flavours, tint the
- // original luminance with a continuous tonal curve, not a flat two-tone wash.
- if(n===0)return '';
- const rgb=[1,3,5].map(i=>parseInt(flavors[n][2].slice(i,i+2),16)/255);
- // Seven smoothly interpolated levels retain subtle highlights, midtones and
- // shadows. The initial pale end also prevents dark, muddy vanilla-like beige.
- const levels=[.43,.55,.68,.79,.89,.97,1.04];
- const tables=rgb.map(v=>levels.map((level,j)=>{
-   const lift=[0,.012,.025,.045,.075,.11,.16][j];
-   return Math.min(1,Math.max(0,v*level+lift)).toFixed(4);
- }).join(' '));
- return '<filter id="flavorTint'+n+'" x="-3%" y="-3%" width="106%" height="106%" color-interpolation-filters="sRGB">'+
-   '<feColorMatrix type="saturate" values="0" result="gray"/>'+
-   '<feGaussianBlur in="gray" stdDeviation="0.20" result="softGray"/>'+
-   '<feComponentTransfer in="softGray">'+
-   '<feFuncR type="table" tableValues="'+tables[0]+'"/>'+
-   '<feFuncG type="table" tableValues="'+tables[1]+'"/>'+
-   '<feFuncB type="table" tableValues="'+tables[2]+'"/>'+
-   '</feComponentTransfer></filter>';
-}
+// Colour is blended over the original photographic ice instead of replacing
+// its grayscale values. CSS 'color' blend keeps the underlying luminosity.
+function flavorFilter(n){return '';}
 const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
 // High-resolution artwork contains transparent padding. Align the visible
 // bottom of each swirl with the top of the cone (not the PNG canvas edge).
@@ -66,9 +68,19 @@ const icePlacement=[
  {x:41,y:30,w:168,h:224}  // fine: taller, higher tip
 ];
 function icePicture(n,shape=state.shape){
- const filter=n===0?'':' filter="url(#flavorTint'+n+')"';
  const p=icePlacement[shape]||icePlacement[1];
- return '<image href="'+iceFiles[shape]+'?art=aligned-2" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="xMidYMid meet"'+filter+'/>';
+ // Waffle cups seat the scoop deeper, so the front of the cup can overlap it.
+ const cup=state.cone===5;
+ const x=cup?p.x+8:p.x, y=cup?p.y+25:p.y, w=cup?p.w-16:p.w, h=cup?p.h-12:p.h;
+ const src=iceFiles[shape]+'?art=aligned-2';
+ const img='<image href="'+src+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet"/>';
+ if(n===0)return img;
+ const id='scoopAlpha'+n+'_'+shape;
+ return '<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+img+'</mask></defs>'+
+ '<g style="isolation:isolate">'+img+
+ '<g mask="url(#'+id+')" style="mix-blend-mode:color">'+
+ '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+flavors[n][2]+'"/>'+
+ '</g></g>';
 }
 function oneScoop(n,shape=state.shape){
  return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape);
@@ -87,7 +99,7 @@ function iceSvg(){
 }
 function sauceSvg(){let s=state.sauce;if(!s)return '';let c=['','#6e3428','#e85b7b','#fffdf0'][s];return `<path d="M101 155 Q115 141 125 145 Q141 136 150 158 Q162 171 151 179 L148 199 Q144 204 141 197 L138 178 Q124 187 116 176 L110 198 Q106 205 102 196Z" fill="${c}" stroke="#ffffff55" stroke-width="2"/>`}
 function sprinklesSvg(){if(!state.sprinkles)return '';let s='';for(let i=0;i<24;i++){let x=83+(i*37)%86,y=163+(i*29)%78;s+=`<rect x="${x}" y="${y}" width="9" height="3" rx="1" transform="rotate(${i*31} ${x} ${y})" fill="${['#ff5786','#3e9de0','#f1c22b','#72b45b'][i%4]}"/>`}return s}
-function render(){document.getElementById('cone').innerHTML=coneSvg();document.getElementById('ice').innerHTML=iceSvg();document.getElementById('sauce').innerHTML=sauceSvg();document.getElementById('sprinkle').innerHTML=sprinklesSvg();document.getElementById('steps').innerHTML=steps.map((s,i)=>`<button class="${step===i?'active':''}" onclick="step=${i};page=0;render()">${i+1}. ${s}</button>`).join('');document.getElementById('heading').textContent=['コーンを えらぼう','まきかたを えらぼう','あじを えらぼう','ソースを かけよう','すきな かざりを のせよう'][step];document.getElementById('mixControls').style.display=step===2?'flex':'none';document.getElementById('mixOne').classList.toggle('active',!state.mix);document.getElementById('mixTwo').classList.toggle('active',state.mix);let opts=currentOptions(),pages=Math.max(1,Math.ceil(opts.length/10));page=Math.min(page,pages-1);document.getElementById('pageNav').style.display=pages>1?'flex':'none';document.getElementById('pageCount').textContent=(page+1)+' / '+pages;document.getElementById('choices').innerHTML=opts.slice(page*10,page*10+10).map((o,j)=>{let i=j+page*10;let sel=(step===0&&state.cone===i)||(step===1&&state.shape===i)||(step===2&&(state.flavor===i||state.mix&&state.flavor2===i))||(step===3&&(i===4?state.sprinkles:state.sauce===i));let bg=step===2?o[2]:'#fff0d6';let decorArt=step===4?({0:"ai-strawberry.png",1:"deco-cherry.png",2:"ai-banana.png",4:"deco-wafer.png",6:"deco-star.png",7:"deco-heart.png"}[i]||null):null;let previewArt=step===0?(i===5?null:"cone-raster-"+Math.min(i,4)+".png"):null;let previewSvg=step===1?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 29 134 210">'+oneScoop(0,i)+'</svg>':step===0&&i===5?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 202 134 130">'+coneSvg(5)+'</svg>':null;return `<button class="choice ${sel?'selected':''}" style="background:${bg}" onclick="choose(${i})">${o[2]&&step===4?`<img src="${o[2]}" style="width:52px;height:52px;object-fit:contain">`:(decorArt||previewArt)?`<img src="${decorArt||previewArt}" alt="" style="width:62px;height:62px;object-fit:contain">`:previewSvg?previewSvg:`<span class="emoji">${o[1]}</span>`}<span>${o[0]}</span></button>`}).join('');document.getElementById('customArea').style.display=step===4?'block':'none';if(step===4)manageCustom();document.getElementById('note').textContent=step===4?'かざりは10こまで。ゴミばこに うごかすと けせるよ。':step===2&&state.mix?'① ひだり、② みぎ のじゅんに あじを えらんでね':'えらぶと ひだりの アイスが かわるよ。';let layer=document.getElementById('decorLayer');layer.innerHTML='';decors.forEach(d=>{let el=document.createElement('div');el.className='decor';el.style.cssText=`left:${d.x}%;top:${d.y}%;pointer-events:auto`;el.innerHTML=d.src?`<img src="${d.src}">`:d.emoji;el.title=d.label+'（ゴミ箱にドラッグして消す）';el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);beep(380);let r=document.getElementById('preview').getBoundingClientRect();const trash=document.getElementById('trashZone');let moved=false;el.onpointermove=ev=>{moved=true;d.x=Math.max(2,Math.min(85,(ev.clientX-r.left)/r.width*100));d.y=Math.max(5,Math.min(85,(ev.clientY-r.top)/r.height*100));el.style.left=d.x+'%';el.style.top=d.y+'%';let t=trash.getBoundingClientRect();trash.classList.toggle('hot',ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18)};el.onpointerup=ev=>{el.onpointermove=null;let t=trash.getBoundingClientRect();let hit=ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18;trash.classList.remove('hot');if(hit&&moved){decors=decors.filter(x=>x.id!==d.id);beep(240);render()}};el.onpointercancel=()=>{el.onpointermove=null;trash.classList.remove('hot')}};layer.append(el)})}
+function render(){document.getElementById('coneBack').innerHTML=coneSvg(state.cone,false);document.getElementById('ice').innerHTML=iceSvg();document.getElementById('coneFront').innerHTML=coneSvg(state.cone,true);document.getElementById('sauce').innerHTML=sauceSvg();document.getElementById('sprinkle').innerHTML=sprinklesSvg();document.getElementById('steps').innerHTML=steps.map((s,i)=>`<button class="${step===i?'active':''}" onclick="step=${i};page=0;render()">${i+1}. ${s}</button>`).join('');document.getElementById('heading').textContent=['コーンを えらぼう','まきかたを えらぼう','あじを えらぼう','ソースを かけよう','すきな かざりを のせよう'][step];document.getElementById('mixControls').style.display=step===2?'flex':'none';document.getElementById('mixOne').classList.toggle('active',!state.mix);document.getElementById('mixTwo').classList.toggle('active',state.mix);let opts=currentOptions(),pages=Math.max(1,Math.ceil(opts.length/10));page=Math.min(page,pages-1);document.getElementById('pageNav').style.display=pages>1?'flex':'none';document.getElementById('pageCount').textContent=(page+1)+' / '+pages;document.getElementById('choices').innerHTML=opts.slice(page*10,page*10+10).map((o,j)=>{let i=j+page*10;let sel=(step===0&&state.cone===i)||(step===1&&state.shape===i)||(step===2&&(state.flavor===i||state.mix&&state.flavor2===i))||(step===3&&(i===4?state.sprinkles:state.sauce===i));let bg=step===2?o[2]:'#fff0d6';let decorArt=step===4?({0:"ai-strawberry.png",1:"deco-cherry.png",2:"ai-banana.png",4:"deco-wafer.png",6:"deco-star.png",7:"deco-heart.png"}[i]||null):null;let previewArt=step===0?(i===5?null:"cone-raster-"+Math.min(i,4)+".png"):null;let previewSvg=step===1?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 29 134 210">'+oneScoop(0,i)+'</svg>':step===0&&i===5?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 202 134 130">'+coneSvg(5)+'</svg>':null;return `<button class="choice ${sel?'selected':''}" style="background:${bg}" onclick="choose(${i})">${o[2]&&step===4?`<img src="${o[2]}" style="width:52px;height:52px;object-fit:contain">`:(decorArt||previewArt)?`<img src="${decorArt||previewArt}" alt="" style="width:62px;height:62px;object-fit:contain">`:previewSvg?previewSvg:`<span class="emoji">${o[1]}</span>`}<span>${o[0]}</span></button>`}).join('');document.getElementById('customArea').style.display=step===4?'block':'none';if(step===4)manageCustom();document.getElementById('note').textContent=step===4?'かざりは10こまで。ゴミばこに うごかすと けせるよ。':step===2&&state.mix?'① ひだり、② みぎ のじゅんに あじを えらんでね':'えらぶと ひだりの アイスが かわるよ。';let layer=document.getElementById('decorLayer');layer.innerHTML='';decors.forEach(d=>{let el=document.createElement('div');el.className='decor';el.style.cssText=`left:${d.x}%;top:${d.y}%;pointer-events:auto`;el.innerHTML=d.src?`<img src="${d.src}">`:d.emoji;el.title=d.label+'（ゴミ箱にドラッグして消す）';el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);beep(380);let r=document.getElementById('preview').getBoundingClientRect();const trash=document.getElementById('trashZone');let moved=false;el.onpointermove=ev=>{moved=true;d.x=Math.max(2,Math.min(85,(ev.clientX-r.left)/r.width*100));d.y=Math.max(5,Math.min(85,(ev.clientY-r.top)/r.height*100));el.style.left=d.x+'%';el.style.top=d.y+'%';let t=trash.getBoundingClientRect();trash.classList.toggle('hot',ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18)};el.onpointerup=ev=>{el.onpointermove=null;let t=trash.getBoundingClientRect();let hit=ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18;trash.classList.remove('hot');if(hit&&moved){decors=decors.filter(x=>x.id!==d.id);beep(240);render()}};el.onpointercancel=()=>{el.onpointermove=null;trash.classList.remove('hot')}};layer.append(el)})}
 function next(){if(step<4){step++;page=0;render()}else{beep(800);speak('できあがり！');document.getElementById('toast').textContent='✨ できあがり！ ✨'}}function back(){step=Math.max(0,step-1);page=0;render()}function reset(){state={cone:0,shape:1,flavor:0,flavor2:null,mix:false,sauce:0,sprinkles:false};decors=[];step=0;page=0;render()}
 function manageCustom(){let area=document.getElementById('customManage');area.innerHTML='';customs.forEach((c,i)=>{let b=document.createElement('button');b.textContent='× '+c.name;b.title=c.name+'を削除';b.onclick=()=>{if(confirm(c.name+'を削除する？')){customs.splice(i,1);try{localStorage.setItem('soft_customs',JSON.stringify(customs))}catch{};page=0;render()}};area.append(b)})}
 async function resizeData(file){return new Promise(resolve=>{let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{let cv=document.createElement('canvas'),k=Math.min(1,240/Math.max(im.width,im.height));cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);resolve(cv.toDataURL('image/png'))};im.src=r.result};r.readAsDataURL(file)})}
