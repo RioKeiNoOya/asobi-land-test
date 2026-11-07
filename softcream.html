@@ -10,7 +10,7 @@ html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:pan-
 <header><a href="./index.html" style="color:#633d2a;text-decoration:none;font-weight:bold">← あそびランド</a><h1>🍦 ちいさなソフトクリームやさん</h1><button class="secondary" onclick="reset()">はじめから</button></header>
 <main class="layout"><section class="preview" id="preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 430" aria-label="ソフトクリームのプレビュー">
 <g id="legacyStand" style="display:none"></g>
-<g id="coneBack"></g><g id="ice"></g><g id="sauce"></g><g id="sprinkle"></g><g id="coneFront"></g><g id="standFront"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
+<g id="coneBack"></g><g id="ice"></g><g id="sauce"></g><g id="sprinkle"></g><g id="edgeSprinkles"></g><g id="coneFront"></g><g id="standFront"></g></svg><div id="decorLayer" style="position:absolute;inset:0;pointer-events:none"></div><div id="trashZone" class="trash-zone">🗑️ ここに すてる</div><div class="toast" id="toast">すきなものを えらんでね！</div></section>
 <section class="menu"><nav class="steps" id="steps"></nav><h2 class="heading" id="heading"></h2><div id="mixControls" style="display:none;justify-content:center;gap:10px;margin:5px"><button id="mixOne" onclick="state.mix=false;state.flavor2=null;render()">1しょく</button><button id="mixTwo" onclick="state.mix=true;state.flavor2=null;render()">ミックス（2しょく）</button></div><div class="choices" id="choices"></div><div class="page-nav" id="pageNav"><button onclick="pageChange(-1)">◀ まえ</button><b id="pageCount">1 / 1</b><button onclick="pageChange(1)">つぎ ▶</button></div><div id="customArea"><label>かざりの イラストを とうろく <input type="file" accept="image/*" id="upload" multiple></label><div id="customManage"></div><div class="tiny">とうろくした画像はこの端末のブラウザに保存します。</div></div><div class="actions"><button class="secondary" onclick="back()">◀ まえ</button><button class="primary" onclick="next()">つぎへ ▶</button><button class="secondary" onclick="save()">📷 ほぞん</button></div><p class="tiny" id="note"></p></section></main>
 <script>
 const steps=['コーン','まきかた','あじ','ソース','かざり'];let step=0, page=0, savedSignature='',decors=[],serial=0;
@@ -256,6 +256,65 @@ function sauceSvg(){
  const c=['','#6e3428','#e85b7b','#fffdf0'][v];
  return '<path d="M101 155 Q115 141 125 145 Q141 136 150 158 Q162 171 151 179 L148 199 Q144 204 141 197 L138 178 Q124 187 116 176 L110 198 Q106 205 102 196Z" fill="'+c+'" stroke="#ffffff55" stroke-width="2"/>';
 }
+
+// A small, deterministic accent layer: the existing sprinkle PNG remains
+// clipped as before. Only these boundary-crossing individual grains are free.
+// Locate opaque edges from the original scoop alpha once per shape.
+const sprinkleEdgePoints={};
+function prepareSprinkleEdges(files,onReady){
+ files.forEach((file,shape)=>{
+  const im=new Image();
+  im.onload=()=>{
+   try{
+    const w=im.naturalWidth,h=im.naturalHeight;
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const cx=canvas.getContext('2d',{willReadFrequently:true});
+    cx.drawImage(im,0,0);
+    const rgba=cx.getImageData(0,0,w,h).data;
+    const alpha=(x,y)=>rgba[(y*w+x)*4+3];
+    const pts=[];
+    // Samples are restricted to the upper/middle swirl, before the cone lip.
+    // Vary heights per shape to avoid unnaturally aligned grains.
+    for(let i=0;i<16;i++){
+     const side=i%2===0?-1:1;
+     const y=Math.round(h*(.21+(i*.071)%0.55));
+     if(y<0||y>=h)continue;
+     let boundary=-1;
+     if(side<0){
+      for(let x=0;x<w;x++){if(alpha(x,y)>=170){boundary=x;break;}}
+     }else{
+      for(let x=w-1;x>=0;x--){if(alpha(x,y)>=170){boundary=x;break;}}
+     }
+     if(boundary<0)continue;
+     // Move just inside the actual silhouette, keeping the grain center
+     // on cream but allowing a visible part to protrude outside.
+     let x=boundary-side*(2+(i%3));
+     x=Math.max(0,Math.min(w-1,x));
+     if(alpha(x,y)<120)x=boundary;
+     pts.push({x:x/w,y:y/h,angle:(i*67+23)%150-75,
+       width:5.5+(i%4)*.8,color:i%7});
+    }
+    sprinkleEdgePoints[shape]=pts;
+    onReady();
+   }catch(e){console.warn('Sprinkle edge calculation skipped',e);}
+  };
+  im.onerror=()=>{};
+  im.src=file;
+ });
+}
+const sprinkleEdgePalette=['#ed556d','#ee91b0','#f39c41','#f2d554','#68b869','#fff3dd','#895337'];
+function edgeSprinklesSvg(shape,p){
+ const pts=sprinkleEdgePoints[shape]||[];
+ // Unlike the underlying sprinkle PNG, this layer has no silhouette mask.
+ return pts.map((q,i)=>{
+  const x=p.x+q.x*p.w,y=p.y+q.y*p.h;
+  const width=q.width,thick=2.7+(i%3)*.35;
+  return '<rect x="'+(x-width/2).toFixed(2)+'" y="'+(y-thick/2).toFixed(2)+
+   '" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+
+   '" fill="'+sprinkleEdgePalette[q.color]+'" transform="rotate('+q.angle+' '+x.toFixed(2)+' '+y.toFixed(2)+')"/>';
+ }).join('');
+}
+
 function sprinklesSvg(){
  if(!state.sprinkles)return '';
  if(toppingReady[4])return toppingImage(toppingAssetNames[4]);
@@ -288,7 +347,7 @@ function fitPhonePreview(){
  if(svg)svg.setAttribute('viewBox',portrait?'0 34 250 370':'0 0 250 430');
 }
 window.addEventListener('resize',fitPhonePreview,{passive:true});
-function render(){fitPhonePreview();document.getElementById('coneBack').innerHTML=coneSvg(state.cone,false);document.getElementById('ice').innerHTML=iceSvg();document.getElementById('coneFront').innerHTML=coneSvg(state.cone,true);document.getElementById('standFront').innerHTML='';document.getElementById('legacyStand').style.display='none';document.getElementById('sauce').innerHTML=toppingMask()+sauceSvg();document.getElementById('sprinkle').innerHTML=sprinklesSvg();document.getElementById('steps').innerHTML=steps.map((s,i)=>`<button class="${step===i?'active':''}" onclick="step=${i};page=0;render()">${i+1}. ${s}</button>`).join('');document.getElementById('heading').textContent=['コーンを えらぼう','まきかたを えらぼう','あじを えらぼう','ソースを かけよう','すきな かざりを のせよう'][step];document.getElementById('mixControls').style.display=step===2?'flex':'none';document.getElementById('mixOne').classList.toggle('active',!state.mix);document.getElementById('mixTwo').classList.toggle('active',state.mix);let opts=currentOptions(),pages=Math.max(1,Math.ceil(opts.length/10));page=Math.min(page,pages-1);document.getElementById('pageNav').style.display=pages>1?'flex':'none';document.getElementById('pageCount').textContent=(page+1)+' / '+pages;document.getElementById('choices').innerHTML=opts.slice(page*10,page*10+10).map((o,j)=>{let i=j+page*10;let sel=(step===0&&state.cone===i)||(step===1&&state.shape===i)||(step===2&&(state.flavor===i||state.mix&&state.flavor2===i))||(step===3&&(i===4?state.sprinkles:state.sauce===i));let bg=step===2?o[2]:'#fff0d6';let decorArt=step===4?({0:"ai-strawberry.png",1:"deco-cherry.png",2:"ai-banana.png",4:"deco-wafer.png",6:"deco-star.png",7:"deco-heart.png"}[i]||null):null;let previewArt=step===0?(i===5?null:"cone-raster-"+Math.min(i,4)+".png"):null;let previewSvg=step===1?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 29 134 210">'+oneScoop(0,i)+'</svg>':step===0&&i===5?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 202 134 130">'+coneSvg(5)+'</svg>':null;return `<button class="choice ${sel?'selected':''}" style="background:${bg}" onclick="choose(${i})">${o[2]&&step===4?`<img src="${o[2]}" style="width:52px;height:52px;object-fit:contain">`:(decorArt||previewArt)?`<img src="${decorArt||previewArt}" alt="" style="width:62px;height:62px;object-fit:contain">`:previewSvg?previewSvg:`<span class="emoji">${o[1]}</span>`}<span>${o[0]}</span></button>`}).join('');document.getElementById('customArea').style.display=step===4?'block':'none';if(step===4)manageCustom();document.getElementById('note').textContent=step===4?'かざりは10こまで。ゴミばこに うごかすと けせるよ。':step===2&&state.mix?'① ひだり、② みぎ のじゅんに あじを えらんでね':'えらぶと ひだりの アイスが かわるよ。';let layer=document.getElementById('decorLayer');layer.innerHTML='';decors.forEach(d=>{let el=document.createElement('div');el.className='decor';el.style.cssText=`left:${d.x}%;top:${d.y}%;pointer-events:auto`;el.innerHTML=d.src?`<img src="${d.src}">`:d.emoji;el.title=d.label+'（ゴミ箱にドラッグして消す）';el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);beep(380);let r=document.getElementById('preview').getBoundingClientRect();const trash=document.getElementById('trashZone');let moved=false;el.onpointermove=ev=>{moved=true;d.x=Math.max(2,Math.min(85,(ev.clientX-r.left)/r.width*100));d.y=Math.max(5,Math.min(85,(ev.clientY-r.top)/r.height*100));el.style.left=d.x+'%';el.style.top=d.y+'%';let t=trash.getBoundingClientRect();trash.classList.toggle('hot',ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18)};el.onpointerup=ev=>{el.onpointermove=null;let t=trash.getBoundingClientRect();let hit=ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18;trash.classList.remove('hot');if(hit&&moved){decors=decors.filter(x=>x.id!==d.id);beep(240);render()}};el.onpointercancel=()=>{el.onpointermove=null;trash.classList.remove('hot')}};layer.append(el)})}
+function render(){fitPhonePreview();document.getElementById('coneBack').innerHTML=coneSvg(state.cone,false);document.getElementById('ice').innerHTML=iceSvg();document.getElementById('coneFront').innerHTML=coneSvg(state.cone,true);document.getElementById('standFront').innerHTML='';document.getElementById('legacyStand').style.display='none';document.getElementById('sauce').innerHTML=toppingMask()+sauceSvg();document.getElementById('sprinkle').innerHTML=sprinklesSvg();document.getElementById('edgeSprinkles').innerHTML=state.sprinkles?edgeSprinklesSvg(state.shape,toppingBounds()):'';document.getElementById('steps').innerHTML=steps.map((s,i)=>`<button class="${step===i?'active':''}" onclick="step=${i};page=0;render()">${i+1}. ${s}</button>`).join('');document.getElementById('heading').textContent=['コーンを えらぼう','まきかたを えらぼう','あじを えらぼう','ソースを かけよう','すきな かざりを のせよう'][step];document.getElementById('mixControls').style.display=step===2?'flex':'none';document.getElementById('mixOne').classList.toggle('active',!state.mix);document.getElementById('mixTwo').classList.toggle('active',state.mix);let opts=currentOptions(),pages=Math.max(1,Math.ceil(opts.length/10));page=Math.min(page,pages-1);document.getElementById('pageNav').style.display=pages>1?'flex':'none';document.getElementById('pageCount').textContent=(page+1)+' / '+pages;document.getElementById('choices').innerHTML=opts.slice(page*10,page*10+10).map((o,j)=>{let i=j+page*10;let sel=(step===0&&state.cone===i)||(step===1&&state.shape===i)||(step===2&&(state.flavor===i||state.mix&&state.flavor2===i))||(step===3&&(i===4?state.sprinkles:state.sauce===i));let bg=step===2?o[2]:'#fff0d6';let decorArt=step===4?({0:"ai-strawberry.png",1:"deco-cherry.png",2:"ai-banana.png",4:"deco-wafer.png",6:"deco-star.png",7:"deco-heart.png"}[i]||null):null;let previewArt=step===0?(i===5?null:"cone-raster-"+Math.min(i,4)+".png"):null;let previewSvg=step===1?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 29 134 210">'+oneScoop(0,i)+'</svg>':step===0&&i===5?'<svg class="scoop-thumb" xmlns="http://www.w3.org/2000/svg" viewBox="58 202 134 130">'+coneSvg(5)+'</svg>':null;return `<button class="choice ${sel?'selected':''}" style="background:${bg}" onclick="choose(${i})">${o[2]&&step===4?`<img src="${o[2]}" style="width:52px;height:52px;object-fit:contain">`:(decorArt||previewArt)?`<img src="${decorArt||previewArt}" alt="" style="width:62px;height:62px;object-fit:contain">`:previewSvg?previewSvg:`<span class="emoji">${o[1]}</span>`}<span>${o[0]}</span></button>`}).join('');document.getElementById('customArea').style.display=step===4?'block':'none';if(step===4)manageCustom();document.getElementById('note').textContent=step===4?'かざりは10こまで。ゴミばこに うごかすと けせるよ。':step===2&&state.mix?'① ひだり、② みぎ のじゅんに あじを えらんでね':'えらぶと ひだりの アイスが かわるよ。';let layer=document.getElementById('decorLayer');layer.innerHTML='';decors.forEach(d=>{let el=document.createElement('div');el.className='decor';el.style.cssText=`left:${d.x}%;top:${d.y}%;pointer-events:auto`;el.innerHTML=d.src?`<img src="${d.src}">`:d.emoji;el.title=d.label+'（ゴミ箱にドラッグして消す）';el.onpointerdown=e=>{e.preventDefault();el.setPointerCapture(e.pointerId);beep(380);let r=document.getElementById('preview').getBoundingClientRect();const trash=document.getElementById('trashZone');let moved=false;el.onpointermove=ev=>{moved=true;d.x=Math.max(2,Math.min(85,(ev.clientX-r.left)/r.width*100));d.y=Math.max(5,Math.min(85,(ev.clientY-r.top)/r.height*100));el.style.left=d.x+'%';el.style.top=d.y+'%';let t=trash.getBoundingClientRect();trash.classList.toggle('hot',ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18)};el.onpointerup=ev=>{el.onpointermove=null;let t=trash.getBoundingClientRect();let hit=ev.clientX>=t.left-18&&ev.clientX<=t.right+18&&ev.clientY>=t.top-18&&ev.clientY<=t.bottom+18;trash.classList.remove('hot');if(hit&&moved){decors=decors.filter(x=>x.id!==d.id);beep(240);render()}};el.onpointercancel=()=>{el.onpointermove=null;trash.classList.remove('hot')}};layer.append(el)})}
 function next(){if(step<4){step++;page=0;render()}else{beep(800);speak('できあがり！');document.getElementById('toast').textContent='✨ できあがり！ ✨'}}function back(){step=Math.max(0,step-1);page=0;render()}function reset(){state={cone:0,shape:1,flavor:0,flavor2:null,mix:false,sauce:0,sprinkles:false};decors=[];step=0;page=0;render()}
 function manageCustom(){let area=document.getElementById('customManage');area.innerHTML='';customs.forEach((c,i)=>{let b=document.createElement('button');b.textContent='× '+c.name;b.title=c.name+'を削除';b.onclick=()=>{if(confirm(c.name+'を削除する？')){customs.splice(i,1);try{localStorage.setItem('soft_customs',JSON.stringify(customs))}catch{};page=0;render()}};area.append(b)})}
 async function resizeData(file){return new Promise(resolve=>{let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{let cv=document.createElement('canvas'),k=Math.min(1,240/Math.max(im.width,im.height));cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);resolve(cv.toDataURL('image/png'))};im.src=r.result};r.readAsDataURL(file)})}
@@ -298,6 +357,7 @@ render();
 probeToppings();
 probeConeLayers();
 prepareCreamExtensions(render);
+prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
 // Originals are used without recoloring for vanilla.  If an asset is missing,
 // use its vector fallback without interfering with the other two shapes.
 iceFiles.forEach((file,i)=>{
