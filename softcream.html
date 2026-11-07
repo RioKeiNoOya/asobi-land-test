@@ -38,8 +38,9 @@ const coneGeometry=[
 function coneAsset(i=state.cone){
  return i===5?'cone-waffle-cup-raster.png':'cone-raster-'+Math.min(i,4)+'.png';
 }
-// Separate, full-resolution front and rear PNGs. These are complementary alpha
-// masks cut along each cone's actual upper front rim (different for all 6).
+// Separate, full-resolution front and rear PNGs. The rear image keeps the
+// entire cone; the foreground repeats ONLY the near-facing wall and rim.
+// This prevents the ice image from erasing the body of the cone.
 // Until both new assets exist, the old single-image rendering stays active.
 const coneLayerReady=Array(6).fill(false);
 function coneSvg(i=state.cone,foreground=false){
@@ -60,7 +61,7 @@ function probeConeLayers(){
    const im=new Image();
    im.onload=()=>ok(im.naturalWidth>0&&im.naturalHeight>0);
    im.onerror=()=>ok(false);
-   im.src=src+'-'+part+'.png?layers=1';
+   im.src=src+'-'+part+'.png?layers=2';
   });
   Promise.all([probe('back'),probe('front')]).then(([back,front])=>{
    if(back&&front){coneLayerReady[i]=true;if(state.cone===i)render();}
