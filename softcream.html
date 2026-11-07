@@ -76,10 +76,18 @@ function icePicture(n,shape=state.shape){
  const img='<image href="'+src+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet"/>';
  if(n===0)return img;
  const id='scoopAlpha'+n+'_'+shape;
+ // Each flavor has its own blend recipe. Dark flavors use multiply to
+ // darken luminous vanilla art without flattening folds and highlights.
+ const recipes={
+   2:{mode:'multiply',color:'#d92748',opacity:1}, // raspberry
+   3:{mode:'multiply',color:'#77a057',opacity:1}, // matcha
+   4:{mode:'multiply',color:'#865237',opacity:1}  // cocoa chocolate
+ };
+ const recipe=recipes[n]||{mode:'color',color:flavors[n][2],opacity:1};
  return '<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+img+'</mask></defs>'+
  '<g style="isolation:isolate">'+img+
- '<g mask="url(#'+id+')" style="mix-blend-mode:color">'+
- '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+flavors[n][2]+'"/>'+
+ '<g mask="url(#'+id+')" style="mix-blend-mode:'+recipe.mode+'">'+
+ '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+recipe.color+'" opacity="'+recipe.opacity+'"/>'+
  '</g></g>';
 }
 function oneScoop(n,shape=state.shape){
