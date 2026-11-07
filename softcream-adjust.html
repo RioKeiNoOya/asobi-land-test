@@ -31,7 +31,7 @@
 </div><div class="sliders" id="shadeSliders"></div>
 <p class="note">濃さ0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
 </div>
-<p class="note">チョコ・ホワイトチョコ・ピンクチョコは「全面にかけるソース（四角ベース）」がおすすめです。ピンクの現行PNGは未制作なので、SVG試作を選んでください。</p></div>
+<p class="note">チョコ・ホワイトチョコ・ピンクチョコは「全面にかけるソース（四角ベース）」がおすすめです。ピンクの現行PNGは未制作なので、選択した場合はSVG試作を表示します。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
 <label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
@@ -121,7 +121,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v8';
+const storeKey='asobiland-softcream-adjust-v9';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -327,17 +327,32 @@ function prepareSprinkleEdges(files,onReady){
  });
 }
 const sprinkleEdgePalette=['#ed556d','#ee91b0','#f39c41','#f2d554','#68b869','#fff3dd','#895337'];
+function colorVariant(hex,factor){
+ const a=hex.replace('#','');
+ const values=[0,2,4].map(i=>parseInt(a.slice(i,i+2),16));
+ const v=values.map(n=>Math.max(0,Math.min(255,Math.round(factor>0?n+(255-n)*factor:n*(1+factor)))));
+ return '#'+v.map(n=>n.toString(16).padStart(2,'0')).join('');
+}
+
 function edgeSprinklesSvg(shape,p){
  const pts=sprinkleEdgePoints[shape]||[];
  // Unlike the underlying sprinkle PNG, this layer has no silhouette mask.
  return pts.map((q,i)=>{
   const x=p.x+q.x*p.w,y=p.y+q.y*p.h;
   const width=q.width,thick=2.7+(i%3)*.35;
-  return '<rect x="'+(x-width/2).toFixed(2)+'" y="'+(y-thick/2).toFixed(2)+
-   '" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+
-   '" fill="'+sprinkleEdgePalette[q.color]+'" transform="rotate('+q.angle+' '+x.toFixed(2)+' '+y.toFixed(2)+')"/>';
+  const c=sprinkleEdgePalette[q.color],light=colorVariant(c,.46),dark=colorVariant(c,-.36);
+  // Each grain is a miniature rounded cylinder with gloss, side shadow and
+  // a tiny cast shadow. No blur filters are needed.
+  const x0=(-width/2).toFixed(2),y0=(-thick/2).toFixed(2);
+  return '<g transform="translate('+x.toFixed(2)+' '+y.toFixed(2)+') rotate('+q.angle+')">'+
+   '<rect x="'+(Number(x0)+.4)+'" y="'+(Number(y0)+1.05)+'" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+'" fill="#654332" opacity=".25"/>'+
+   '<rect x="'+x0+'" y="'+y0+'" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+'" fill="'+dark+'"/>'+
+   '<rect x="'+x0+'" y="'+y0+'" width="'+width+'" height="'+(thick*.78)+'" rx="'+(thick*.39)+'" fill="'+c+'"/>'+
+   '<path d="M'+(-width/2+1.2)+' '+(-thick/2+.78)+' h'+(width-2.4)+'" stroke="'+light+'" opacity=".88" stroke-width=".8" stroke-linecap="round"/>'+
+   '<path d="M'+(-width/2+1.7)+' '+(-thick/2+.44)+' h'+(width*.36)+'" stroke="#fff" opacity=".54" stroke-width=".5" stroke-linecap="round"/></g>';
  }).join('');
 }
+
 
 const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.png',white:'sauce-white.png',pink:'sauce-white.png'};
 const sauceColors={chocolate:['#512717','#a56b42'],strawberry:['#b91c4c','#f25b80'],white:['#e9dfc7','#fffaf2'],pink:['#d86d92','#ffb2c7']};
@@ -396,7 +411,7 @@ function drawToppings(p,ext,iceArt){
   const t=data.toppings.sauce;
   if(t.kind==='none')return '';
   const r=adjustedToppingBounds(p,t,false);
-  const graphic=t.style==='original'?imageTag(sauceFiles[t.kind],{...r}):
+  const graphic=t.style==='original'&&t.kind!=='pink'?imageTag(sauceFiles[t.kind],{...r}):
     '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
   // Reuse the original cream texture as an optional low-opacity shading layer.
   // Clip that shading to both the sauce alpha and the scoop silhouette.
@@ -443,7 +458,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:8,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:9,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
