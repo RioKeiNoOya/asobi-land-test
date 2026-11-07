@@ -79,6 +79,76 @@ function tint(hex,factor){
 // its grayscale values. CSS 'color' blend keeps the underlying luminosity.
 function flavorFilter(n){return '';}
 const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
+
+/* Create a real textured continuation from the lower opaque pixels of each
+   original swirl. Generated once per shape; never changes PNG files. */
+const extendedCreamSources={};
+const extendedCreamFactor={};
+function prepareCreamExtensions(onReady){
+ iceFiles.forEach((file,shape)=>{
+  const im=new Image();
+  im.onload=()=>{
+   try{
+    const w=im.naturalWidth,h=im.naturalHeight;
+    const src=document.createElement('canvas');src.width=w;src.height=h;
+    const sc=src.getContext('2d',{willReadFrequently:true});sc.drawImage(im,0,0);
+    const pixels=sc.getImageData(0,0,w,h).data;
+    let minX=w,maxX=0,maxY=0;
+    for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){
+      if(pixels[(y*w+x)*4+3]>180){minX=Math.min(minX,x);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
+    }
+    if(maxX<=minX)return;
+    const extra=Math.round(h*.22);
+    const out=document.createElement('canvas');out.width=w;out.height=h+extra;
+    const ctx=out.getContext('2d',{willReadFrequently:true});
+    const width=maxX-minX,center=(minX+maxX)/2;
+    // Follow the actual visible bottom of the photographed swirl.
+    const edgeXs=[];
+    for(let x=minX;x<=maxX;x++){
+      let last=-1;
+      for(let y=maxY;y>=Math.max(0,maxY-Math.round(h*.23));y--){
+       if(pixels[(y*w+x)*4+3]>140){last=y;break;}
+      }
+      edgeXs[x]=last;
+    }
+    const img=ctx.createImageData(w,h+extra),dst=img.data;
+    const depth=Math.round(h*.14);
+    for(let x=minX;x<=maxX;x++){
+      let bottom=edgeXs[x];if(bottom<maxY-depth)continue;
+      const distance=Math.abs(x-center)/(width/2);
+      if(distance>.75)continue;
+      const fullDepth=Math.round(extra*(.98-.55*Math.pow(distance/.75,2)));
+      for(let t=-Math.round(h*.012);t<fullDepth;t++){
+       const y=bottom+t;if(y<0||y>=h+extra)continue;
+       // Maintain original photographic folds by carrying neighboring
+       // lower rows down, with gently varying source sampling.
+       const sampleY=Math.max(0,Math.min(h-1,bottom-Math.round(h*(.016+.012*Math.sin(t/Math.max(1,h)*34+x/Math.max(1,w)*10)))));
+       let sampleX=x+Math.round(Math.sin(t*.045+x*.017)*w*.003);
+       sampleX=Math.max(0,Math.min(w-1,sampleX));
+       let index=(sampleY*w+sampleX)*4;
+       if(pixels[index+3]<50){
+        index=(Math.max(0,bottom-Math.round(h*.03))*w+x)*4;
+       }
+       if(pixels[index+3]<20)continue;
+       const z=(y*w+x)*4;dst[z]=pixels[index];dst[z+1]=pixels[index+1];dst[z+2]=pixels[index+2];
+       const edgeFade=Math.min(1,(.75-distance)*18);
+       dst[z+3]=Math.round(255*Math.min(1,Math.max(0,edgeFade)));
+      }
+    }
+    ctx.putImageData(img,0,0);ctx.drawImage(im,0,0);
+    extendedCreamSources[shape]=out.toDataURL('image/png');
+    extendedCreamFactor[shape]=(h+extra)/h;
+    onReady();
+   }catch(error){console.warn('cream texture continuation unavailable',error);}
+  };
+  im.src=file;
+ });
+}
+function creamSource(shape){return extendedCreamSources[shape]||iceFiles[shape];}
+function creamImageGeometry(p,shape){
+ return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
+}
+
 // High-resolution artwork contains transparent padding. Align the visible
 // bottom of each swirl with the top of the cone (not the PNG canvas edge).
 const icePlacement=[
@@ -91,8 +161,9 @@ function icePicture(n,shape=state.shape){
  // Waffle cups seat the scoop deeper, so the front of the cup can overlap it.
  const cup=state.cone===5;
  const x=cup?p.x+4:p.x, y=cup?p.y+45:p.y, w=cup?p.w-8:p.w, h=cup?p.h-12:p.h;
- const src=iceFiles[shape]+'?art=aligned-2';
- const img='<image href="'+src+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet"/>';
+ const src=creamSource(shape);
+ const extended=creamImageGeometry({x,y,w,h},shape);
+ const img='<image href="'+src+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+extended.h+'" preserveAspectRatio="none"/>';
  if(n===0)return img;
  const id='scoopAlpha'+n+'_'+shape;
  // Each flavor has its own blend recipe. Dark flavors use multiply to
@@ -107,10 +178,10 @@ function icePicture(n,shape=state.shape){
  // Only the three dark flavours are affected; vanilla and pastel flavours
  // keep their original rendering.
  const contrast=(n===2||n===3||n===4)?'filter:contrast(1.16) saturate(1.04);':'';
- return '<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+img+'</mask></defs>'+
+ return '<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+extended.h+'" style="mask-type:alpha">'+img+'</mask></defs>'+
  '<g style="isolation:isolate;'+contrast+'">'+img+
  '<g mask="url(#'+id+')" style="mix-blend-mode:'+recipe.mode+'">'+
- '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+recipe.color+'" opacity="'+recipe.opacity+'"/>'+
+ '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+extended.h+'" fill="'+recipe.color+'" opacity="'+recipe.opacity+'"/>'+
  '</g></g>';
 }
 function oneScoop(n,shape=state.shape){
@@ -221,6 +292,7 @@ render();
 loadStandImage();
 probeToppings();
 probeConeLayers();
+prepareCreamExtensions(render);
 // Originals are used without recoloring for vanilla.  If an asset is missing,
 // use its vector fallback without interfering with the other two shapes.
 iceFiles.forEach((file,i)=>{
