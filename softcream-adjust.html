@@ -21,7 +21,7 @@
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>仕上がった設定を共有</h2>
 <div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の個別設定を解除</button><button id="resetAll">全部初期化</button></div>
-<p id="status">変更はこの端末のブラウザに自動保存されます。</p>
+<p id="status">今回の確定値を初期設定にしました。変更はこの端末のブラウザに自動保存されます。</p>
 <details open><summary>設定データ（コピーしてチャットに貼ってください）</summary><textarea id="export" spellcheck="false" readonly></textarea></details>
 <p class="note">ここで調整しただけではゲーム本体は変わりません。コピーしたデータを送ってもらった後、ゲーム本体へ反映します。</p></div>
 </section></main>
@@ -104,11 +104,13 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v2';
+const storeKey='asobiland-softcream-adjust-v3';
+const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
- commonCone:{cw:100,ch:100,cx:0,cy:0,iw:100,ih:100,ix:0,iy:0},
- commonColor:{blend:'auto',tint:null,opacity:100,saturation:100,contrast:100,brightness:100},
- coneOverrides:{},colorOverrides:{}
+ commonCone:{...approvedPresets.commonCone},
+ commonColor:{...approvedPresets.commonColor},
+ coneOverrides:Object.fromEntries(Object.entries(approvedPresets.coneOverrides).map(([name,v])=>[coneNames.indexOf(name),{...v}])),
+ colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}]))
 });
 let data=defaults();
 try{
@@ -217,8 +219,8 @@ function render(){
   $('ice').innerHTML='<defs>'+filter+'<mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
   '<g filter="url(#iceColorCorrection)" style="isolation:isolate">'+art+(chosen.flavor===0?'':'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(mode)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+selectedTint()+'" opacity="'+(fl.opacity/100)+'"/></g>')+'</g>';
  }
- $('stand').innerHTML=chosen.cone===5?'':'<image href="stand.png" x="56" y="264" width="138" height="137" preserveAspectRatio="none"/>';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:2,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
+ $('stand').innerHTML='';
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:3,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
