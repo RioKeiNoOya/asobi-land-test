@@ -6,7 +6,7 @@
 </style></head><body>
 <header><h1>🍦 ソフトクリーム調整室</h1><a href="softcream.html">ゲームへ戻る</a><span class="note">調整専用・ゲーム本体は変わりません</span></header>
 <main><div class="stage"><svg id="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 16 250 405" aria-label="ソフトクリーム配置プレビュー">
-<g id="back"></g><g id="ice"></g><g id="toppingSauce"></g><g id="toppingSprinkles"></g><g id="front"></g><g id="stand"></g></svg></div>
+<g id="back"></g><g id="ice"></g><g id="toppingSauce"></g><g id="toppingSprinkles"></g><g id="edgeSprinkles"></g><g id="front"></g><g id="stand"></g></svg></div>
 <section class="settings">
 <div class="panel"><h2>表示する組み合わせ</h2>
 <div class="selectors"><label class="field">コーン<select id="cone"></select></label><label class="field">アイス形状<select id="shape"></select></label><label class="field">味<select id="flavor"></select></label><label class="field">背景<select id="bg"><option value="cream">クリーム色</option><option value="white">白</option><option value="dark">濃い色</option></select></label></div>
@@ -27,7 +27,7 @@
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
 <label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
-<div class="sliders" id="sprinkleSliders" style="margin-top:12px"></div><p class="note">元画像の2枚重ねと、粒の大きさ・密度が違う新しいSVG版を比較できます。</p></div>
+<label style="display:block;margin-top:9px;font-size:14px"><input type="checkbox" id="edgeSprinkleEnabled"> 輪郭を越える粒を追加（試作）</label><div class="sliders" id="sprinkleSliders" style="margin-top:12px"></div><p class="note">元画像の2枚重ねと、粒の大きさ・密度が違う新しいSVG版を比較できます。</p></div>
 <div class="panel"><h2>仕上がった設定を共有</h2>
 <div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の個別設定を解除</button><button id="resetAll">全部初期化</button></div>
 <p id="status">今回の確定値を初期設定にしました。変更はこの端末のブラウザに自動保存されます。</p>
@@ -113,7 +113,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v5';
+const storeKey='asobiland-softcream-adjust-v6';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -122,7 +122,7 @@ const defaults=()=>({
  colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
  toppings:{
   sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100},
-  sprinkle:{style:'original',x:1,y:-1,w:120,h:130,opacity:100,double:false,secondX:24,secondY:-42}
+  sprinkle:{style:'original',x:1,y:-1,w:120,h:130,opacity:100,double:false,secondX:24,secondY:-42,edge:true}
  }
 });
 let data=defaults();
@@ -189,11 +189,13 @@ function syncToppings(){
  $('sauceStyle').value=data.toppings.sauce.style;
  $('sprinkleStyle').value=data.toppings.sprinkle.style;
  $('sprinkleDouble').checked=data.toppings.sprinkle.double;
+ $('edgeSprinkleEnabled').checked=data.toppings.sprinkle.edge!==false;
 }
 for(const [id,group,key] of [['sauceKind','sauce','kind'],['sauceStyle','sauce','style'],['sprinkleStyle','sprinkle','style']]){
  $(id).addEventListener('change',()=>{data.toppings[group][key]=$(id).value;render();});
 }
 $('sprinkleDouble').addEventListener('change',()=>{data.toppings.sprinkle.double=$('sprinkleDouble').checked;render();});
+$('edgeSprinkleEnabled').addEventListener('change',()=>{data.toppings.sprinkle.edge=$('edgeSprinkleEnabled').checked;render();});
 function sync(){
  const c=coneSettings(),f=colorSettings();
  for(const [key,,,,,unit] of [...coneDefs,...iceDefs,...colorDefs]){
@@ -253,6 +255,65 @@ async function checkLayers(i){
 }
 // Toppings are clipped by the actual alpha of the extended ice, and remain
 // below the foreground cone. The original PNG option uses the game assets.
+
+// A small, deterministic accent layer: the existing sprinkle PNG remains
+// clipped as before. Only these boundary-crossing individual grains are free.
+// Locate opaque edges from the original scoop alpha once per shape.
+const sprinkleEdgePoints={};
+function prepareSprinkleEdges(files,onReady){
+ files.forEach((file,shape)=>{
+  const im=new Image();
+  im.onload=()=>{
+   try{
+    const w=im.naturalWidth,h=im.naturalHeight;
+    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
+    const cx=canvas.getContext('2d',{willReadFrequently:true});
+    cx.drawImage(im,0,0);
+    const rgba=cx.getImageData(0,0,w,h).data;
+    const alpha=(x,y)=>rgba[(y*w+x)*4+3];
+    const pts=[];
+    // Samples are restricted to the upper/middle swirl, before the cone lip.
+    // Vary heights per shape to avoid unnaturally aligned grains.
+    for(let i=0;i<16;i++){
+     const side=i%2===0?-1:1;
+     const y=Math.round(h*(.21+(i*.071)%0.55));
+     if(y<0||y>=h)continue;
+     let boundary=-1;
+     if(side<0){
+      for(let x=0;x<w;x++){if(alpha(x,y)>=170){boundary=x;break;}}
+     }else{
+      for(let x=w-1;x>=0;x--){if(alpha(x,y)>=170){boundary=x;break;}}
+     }
+     if(boundary<0)continue;
+     // Move just inside the actual silhouette, keeping the grain center
+     // on cream but allowing a visible part to protrude outside.
+     let x=boundary-side*(2+(i%3));
+     x=Math.max(0,Math.min(w-1,x));
+     if(alpha(x,y)<120)x=boundary;
+     pts.push({x:x/w,y:y/h,angle:(i*67+23)%150-75,
+       width:5.5+(i%4)*.8,color:i%7});
+    }
+    sprinkleEdgePoints[shape]=pts;
+    onReady();
+   }catch(e){console.warn('Sprinkle edge calculation skipped',e);}
+  };
+  im.onerror=()=>{};
+  im.src=file;
+ });
+}
+const sprinkleEdgePalette=['#ed556d','#ee91b0','#f39c41','#f2d554','#68b869','#fff3dd','#895337'];
+function edgeSprinklesSvg(shape,p){
+ const pts=sprinkleEdgePoints[shape]||[];
+ // Unlike the underlying sprinkle PNG, this layer has no silhouette mask.
+ return pts.map((q,i)=>{
+  const x=p.x+q.x*p.w,y=p.y+q.y*p.h;
+  const width=q.width,thick=2.7+(i%3)*.35;
+  return '<rect x="'+(x-width/2).toFixed(2)+'" y="'+(y-thick/2).toFixed(2)+
+   '" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+
+   '" fill="'+sprinkleEdgePalette[q.color]+'" transform="rotate('+q.angle+' '+x.toFixed(2)+' '+y.toFixed(2)+')"/>';
+ }).join('');
+}
+
 const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.png',white:'sauce-white.png'};
 const sauceColors={chocolate:['#361a11','#7d3f27'],strawberry:['#b91c4c','#f25b80'],white:['#fff8e5','#e8ceaf']};
 function svgSauce(kind,style){
@@ -319,6 +380,7 @@ function drawToppings(p,ext,iceArt){
  }
  $('toppingSauce').innerHTML=mask+drawSauce();
  $('toppingSprinkles').innerHTML=mask+drawSprinkles();
+ $('edgeSprinkles').innerHTML=data.toppings.sprinkle.style!=='none'&&data.toppings.sprinkle.edge!==false?'<g opacity="'+data.toppings.sprinkle.opacity/100+'">'+edgeSprinklesSvg(chosen.shape,p)+'</g>':'';
 }
 function render(){
  const c=cp(),p=ip(),fl=colorSettings(),name=coneName(),base=name.replace(/\.png$/,'');
@@ -338,7 +400,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:5,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:6,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
@@ -352,4 +414,5 @@ $('resetSelected').onclick=()=>{
 $('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();syncToppings();render();};
 for(let i=0;i<6;i++)checkLayers(i);
 sync();syncToppings();render();prepareCreamExtensions(render);
+prepareSprinkleEdges(files,render);
 </script></body></html>
