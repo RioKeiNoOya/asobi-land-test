@@ -21,8 +21,16 @@
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>ソースを比較</h2>
 <div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="strawberry">いちご</option><option value="white">ホワイト</option></select></label>
-<label class="field">デザイン<select id="sauceStyle"><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option></select></label></div>
+<label class="field">デザイン<select id="sauceStyle"><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
 <div class="sliders" id="sauceSliders" style="margin-top:12px"></div>
+<div style="border-top:1px solid #e9ddcf;margin-top:12px;padding-top:12px">
+<strong>ソース上に重ねるソフトの陰影（試作）</strong>
+<div class="selectors" style="margin:9px 0">
+<label class="field">陰影の合成方法<select id="sauceShadeBlend"><option value="multiply">乗算（陰影が濃い）</option><option value="soft-light">ソフトライト（自然）</option><option value="overlay">オーバーレイ（くっきり）</option><option value="normal">通常（元画像を薄く重ねる）</option></select></label>
+<label class="field">陰影処理<select id="sauceShadeSource"><option value="gray">モノクロ陰影</option><option value="original">元のクリーム画像</option></select></label>
+</div><div class="sliders" id="shadeSliders"></div>
+<p class="note">濃さ0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
+</div>
 <p class="note">細いチョコペン風とドリップ風は新しいSVG試作。現行PNGとも比較できます。位置と大きさはアイスに対する割合です。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
@@ -113,7 +121,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v6';
+const storeKey='asobiland-softcream-adjust-v7';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -121,14 +129,14 @@ const defaults=()=>({
  coneOverrides:Object.fromEntries(Object.entries(approvedPresets.coneOverrides).map(([name,v])=>[coneNames.indexOf(name),{...v}])),
  colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
  toppings:{
-  sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100},
+  sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100,shadeOpacity:18,shadeBlur:1.5,shadeBlend:'soft-light',shadeSource:'gray'},
   sprinkle:{style:'original',x:1,y:-1,w:120,h:130,opacity:100,double:false,secondX:24,secondY:-42,edge:true}
  }
 });
 let data=defaults();
 try{
  const saved=JSON.parse(localStorage.getItem(storeKey));
- if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides&&saved.toppings)data=saved;
+ if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides&&saved.toppings){data=saved;data.toppings.sauce={...defaults().toppings.sauce,...saved.toppings.sauce};}
 }catch(e){}
 function coneSettings(){return data.coneOverrides[chosen.cone]||data.commonCone;}
 function colorSettings(){return data.colorOverrides[chosen.flavor]||data.commonColor;}
@@ -180,11 +188,26 @@ function toppingControls(group){
  }
 }
 toppingControls('sauce');toppingControls('sprinkle');
+const shadeDefs=[
+ ['shadeOpacity','陰影の濃さ',0,70,1,'%'],
+ ['shadeBlur','ぼかし',0,6,.5,'px']
+];
+$('shadeSliders').innerHTML=shadeDefs.map(([key,label,min,max,step])=>'<div class="slide"><label for="'+key+'">'+label+' <output id="o_'+key+'"></output></label><input id="'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"></div>').join('');
+for(const [key] of shadeDefs){
+ $(key).addEventListener('input',()=>{data.toppings.sauce[key]=Number($(key).value);$('o_'+key).textContent=$(key).value+(key==='shadeBlur'?'px':'%');render();});
+}
+for(const [id,key] of [['sauceShadeBlend','shadeBlend'],['sauceShadeSource','shadeSource']]){
+ $(id).addEventListener('change',()=>{data.toppings.sauce[key]=$(id).value;render();});
+}
+
 function syncToppings(){
  for(const group of ['sauce','sprinkle']){
   const obj=data.toppings[group],defs=toppingDefs.concat(group==='sprinkle'?[['secondX','',0,0,1,''],['secondY','',0,0,1,'']]:[]);
   for(const [key,,,,,unit] of defs){const id=group+'_'+key;$(id).value=obj[key];$('o_'+id).textContent=obj[key]+unit;}
  }
+ for(const [key] of shadeDefs){$(key).value=data.toppings.sauce[key];$('o_'+key).textContent=$(key).value+(key==='shadeBlur'?'px':'%');}
+ $('sauceShadeBlend').value=data.toppings.sauce.shadeBlend;
+ $('sauceShadeSource').value=data.toppings.sauce.shadeSource;
  $('sauceKind').value=data.toppings.sauce.kind;
  $('sauceStyle').value=data.toppings.sauce.style;
  $('sprinkleStyle').value=data.toppings.sprinkle.style;
@@ -320,6 +343,12 @@ const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.p
 const sauceColors={chocolate:['#361a11','#7d3f27'],strawberry:['#b91c4c','#f25b80'],white:['#fff8e5','#e8ceaf']};
 function svgSauce(kind,style){
  const colors=sauceColors[kind]||sauceColors.chocolate;
+ if(style==='flow'){
+  // Non-pointed, rectangular source field with soft irregular drips.
+  return '<defs><linearGradient id="flowSauceGradient" x1="0" y1="0" x2=".2" y2="1"><stop offset="0" stop-color="'+colors[1]+'"/><stop offset=".48" stop-color="'+colors[0]+'"/><stop offset="1" stop-color="'+colors[0]+'"/></linearGradient></defs>'+
+  '<path d="M0 0 H250 V60 Q232 57 224 73 L220 115 Q216 132 210 113 L205 73 Q188 65 172 78 L168 149 Q161 174 155 149 L149 79 Q134 74 121 82 L117 135 Q109 155 103 133 L99 82 Q85 73 70 78 L65 160 Q57 183 50 159 L46 76 Q30 69 16 79 L12 119 Q7 135 3 117 L0 105 Z" fill="url(#flowSauceGradient)"/>'+
+  '<g fill="none" stroke="'+colors[1]+'" opacity=".55" stroke-width="4" stroke-linecap="round"><path d="M20 12 Q35 30 28 62"/><path d="M115 8 Q135 33 124 63"/><path d="M199 8 Q218 35 202 61"/></g>';
+ }
  if(style==='pen'){
   const lines=[
    'M30 70 C61 35 91 54 121 30 S184 36 210 14',
@@ -369,7 +398,19 @@ function drawToppings(p,ext,iceArt){
   const r=adjustedToppingBounds(p,t,false);
   const graphic=t.style==='original'?imageTag(sauceFiles[t.kind],{...r}):
     '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
-  return '<g mask="url(#iceToppingMask)" opacity="'+t.opacity/100+'">'+graphic+'</g>';
+  // Reuse the original cream texture as an optional low-opacity shading layer.
+  // Clip that shading to both the sauce alpha and the scoop silhouette.
+  const shadeOpacity=Math.max(0,Math.min(70,t.shadeOpacity||0))/100;
+  let shading='';
+  if(shadeOpacity>0){
+    const shadeMask='<mask id="sauceShadeMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" style="mask-type:alpha">'+graphic+'</mask>';
+    const blur=Math.max(0,Math.min(6,Number(t.shadeBlur)||0));
+    const grayscale=t.shadeSource==='original'?'':'<feColorMatrix type="saturate" values="0"/>';
+    const filter='<filter id="sauceShadeFilter" filterUnits="userSpaceOnUse" x="'+(p.x-14)+'" y="'+(p.y-14)+'" width="'+(p.w+28)+'" height="'+(ext.h+28)+'" color-interpolation-filters="sRGB">'+grayscale+(blur?'<feGaussianBlur stdDeviation="'+blur+'"/>':'')+'</filter>';
+    const mode=['multiply','soft-light','overlay','normal'].includes(t.shadeBlend)?t.shadeBlend:'soft-light';
+    shading='<defs>'+shadeMask+filter+'</defs><g mask="url(#sauceShadeMask)" style="mix-blend-mode:'+mode+'" opacity="'+shadeOpacity+'"><g filter="url(#sauceShadeFilter)">'+iceArt+'</g></g>';
+  }
+  return '<g mask="url(#iceToppingMask)"><g opacity="'+t.opacity/100+'">'+graphic+'</g>'+shading+'</g>';
  }
  function drawSprinkles(){
   const t=data.toppings.sprinkle;
@@ -402,7 +443,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:6,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:7,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
