@@ -315,14 +315,35 @@ function toppingImage(file){
  const y=p.y+(sprinkle?-9:33);
  return '<image href="'+file+'?toppings=4" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet" mask="url(#toppingIceAlpha)"/>';
 }
+
+const sauceLooks={
+ 1:{base:'#512717',light:'#a56b42',dark:'#2e160e'},
+ 3:{base:'#e9dfc7',light:'#fffaf2',dark:'#b9a78d'},
+ 5:{base:'#d86d92',light:'#ffb2c7',dark:'#a33d65'}
+};
+const flowSaucePath='M0 0 H250 V60 Q235 55 225 74 L221 117 Q217 136 211 114 L206 77 Q185 65 174 80 L169 155 Q162 177 156 154 L151 82 Q133 76 123 85 L119 138 Q112 160 106 137 L101 80 Q83 72 71 79 L66 159 Q58 182 51 158 L47 78 Q30 67 17 80 L13 121 Q7 138 3 118 L0 102 Z';
 function sauceSvg(){
  const v=state.sauce;
  if(!v)return '';
- if(toppingReady[v])return toppingImage(toppingAssetNames[v]);
- const c=['','#6e3428','#e85b7b','#fffdf0'][v];
- return '<path d="M101 155 Q115 141 125 145 Q141 136 150 158 Q162 171 151 179 L148 199 Q144 204 141 197 L138 178 Q124 187 116 176 L110 198 Q106 205 102 196Z" fill="'+c+'" stroke="#ffffff55" stroke-width="2"/>';
+ // Strawberry jam remains the existing PNG; the three chocolates share
+ // one rectangular field whose lower edge has irregular drips.
+ if(v===2)return toppingReady[2]?toppingImage(toppingAssetNames[2]):'<path d="M88 153Q125 131 166 158L155 190Q150 201 144 189L137 172Q126 183 118 171L107 202Q101 205 99 190Z" fill="#da4470"/>';
+ const colors=sauceLooks[v];
+ if(!colors)return '';
+ const p=toppingBounds();
+ const w=p.w*.98,h=p.h*.72,x=p.x+(p.w-w)/2,y=p.y+11;
+ const art='<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+
+ '<defs><linearGradient id="chocoFlowGrad" x1="0" y1="0" x2=".15" y2="1"><stop stop-color="'+colors.light+'"/><stop offset=".46" stop-color="'+colors.base+'"/><stop offset="1" stop-color="'+colors.dark+'"/></linearGradient></defs>'+
+ '<path d="'+flowSaucePath+'" fill="url(#chocoFlowGrad)"/>'+
+ '<g fill="none" stroke="'+colors.light+'" stroke-width="4" opacity=".5" stroke-linecap="round"><path d="M20 10Q35 32 28 64"/><path d="M116 9Q131 31 124 69"/><path d="M202 9Q219 39 203 64"/></g></svg>';
+ // Local silhouette and sauce masks, with a low-opacity soft-serve texture
+ // laid on top to keep original folds visible without heavy Gaussian blur.
+ const maskShape='<mask id="chocoShapeMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" style="mask-type:alpha"><image href="'+creamSource(state.shape)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" preserveAspectRatio="none"/></mask>';
+ const shadeShape='<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="0 0 250 230" preserveAspectRatio="none"><path d="'+flowSaucePath+'" fill="white"/></svg>';
+ const maskSauce='<mask id="chocoSauceOnly" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+shadeShape+'</mask>';
+ const shade='<g mask="url(#chocoSauceOnly)" opacity=".20" style="mix-blend-mode:soft-light"><image href="'+creamSource(state.shape)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" preserveAspectRatio="none"/></g>';
+ return '<defs>'+maskShape+maskSauce+'</defs><g mask="url(#chocoShapeMask)">'+art+shade+'</g>';
 }
-
 // A small, deterministic accent layer: the existing sprinkle PNG remains
 // clipped as before. Only these boundary-crossing individual grains are free.
 // Locate opaque edges from the original scoop alpha once per shape.
@@ -377,9 +398,16 @@ function edgeSprinklesSvg(shape,p){
  return pts.map((q,i)=>{
   const x=p.x+q.x*p.w,y=p.y+q.y*p.h;
   const width=q.width,thick=2.7+(i%3)*.35;
-  return '<rect x="'+(x-width/2).toFixed(2)+'" y="'+(y-thick/2).toFixed(2)+
-   '" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+
-   '" fill="'+sprinkleEdgePalette[q.color]+'" transform="rotate('+q.angle+' '+x.toFixed(2)+' '+y.toFixed(2)+')"/>';
+  const c=sprinkleEdgePalette[q.color],light=colorVariant(c,.46),dark=colorVariant(c,-.36);
+  // Each grain is a miniature rounded cylinder with gloss, side shadow and
+  // a tiny cast shadow. No blur filters are needed.
+  const x0=(-width/2).toFixed(2),y0=(-thick/2).toFixed(2);
+  return '<g transform="translate('+x.toFixed(2)+' '+y.toFixed(2)+') rotate('+q.angle+')">'+
+   '<rect x="'+(Number(x0)+.4)+'" y="'+(Number(y0)+1.05)+'" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+'" fill="#654332" opacity=".25"/>'+
+   '<rect x="'+x0+'" y="'+y0+'" width="'+width+'" height="'+thick+'" rx="'+(thick/2)+'" fill="'+dark+'"/>'+
+   '<rect x="'+x0+'" y="'+y0+'" width="'+width+'" height="'+(thick*.78)+'" rx="'+(thick*.39)+'" fill="'+c+'"/>'+
+   '<path d="M'+(-width/2+1.2)+' '+(-thick/2+.78)+' h'+(width-2.4)+'" stroke="'+light+'" opacity=".88" stroke-width=".8" stroke-linecap="round"/>'+
+   '<path d="M'+(-width/2+1.7)+' '+(-thick/2+.44)+' h'+(width*.36)+'" stroke="#fff" opacity=".54" stroke-width=".5" stroke-linecap="round"/></g>';
  }).join('');
 }
 
