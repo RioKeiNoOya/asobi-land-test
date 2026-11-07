@@ -6,7 +6,7 @@
 </style></head><body>
 <header><h1>🍦 ソフトクリーム調整室</h1><a href="softcream.html">ゲームへ戻る</a><span class="note">調整専用・ゲーム本体は変わりません</span></header>
 <main><div class="stage"><svg id="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 16 250 405" aria-label="ソフトクリーム配置プレビュー">
-<g id="back"></g><g id="ice"></g><g id="front"></g><g id="stand"></g></svg></div>
+<g id="back"></g><g id="ice"></g><g id="toppingSauce"></g><g id="toppingSprinkles"></g><g id="front"></g><g id="stand"></g></svg></div>
 <section class="settings">
 <div class="panel"><h2>表示する組み合わせ</h2>
 <div class="selectors"><label class="field">コーン<select id="cone"></select></label><label class="field">アイス形状<select id="shape"></select></label><label class="field">味<select id="flavor"></select></label><label class="field">背景<select id="bg"><option value="cream">クリーム色</option><option value="white">白</option><option value="dark">濃い色</option></select></label></div>
@@ -19,6 +19,15 @@
 <div class="selectors"><label class="field">合成方法<select id="blend"><option value="auto">自動（濃い味は乗算）</option><option value="color">color（元の明暗を保持）</option><option value="multiply">multiply（濃くなる）</option><option value="overlay">overlay（コントラスト強め）</option><option value="soft-light">soft-light（やわらかい）</option><option value="hard-light">hard-light（強い発色）</option></select></label><label class="field">重ねる色<input type="color" id="tint"></label></div>
 <div class="sliders" id="colorSliders" style="margin-top:13px"></div>
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
+<div class="panel"><h2>ソースを比較</h2>
+<div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="strawberry">いちご</option><option value="white">ホワイト</option></select></label>
+<label class="field">デザイン<select id="sauceStyle"><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option></select></label></div>
+<div class="sliders" id="sauceSliders" style="margin-top:12px"></div>
+<p class="note">細いチョコペン風とドリップ風は新しいSVG試作。現行PNGとも比較できます。位置と大きさはアイスに対する割合です。</p></div>
+<div class="panel"><h2>カラースプレーを比較</h2>
+<div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
+<label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
+<div class="sliders" id="sprinkleSliders" style="margin-top:12px"></div><p class="note">元画像の2枚重ねと、粒の大きさ・密度が違う新しいSVG版を比較できます。</p></div>
 <div class="panel"><h2>仕上がった設定を共有</h2>
 <div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の個別設定を解除</button><button id="resetAll">全部初期化</button></div>
 <p id="status">今回の確定値を初期設定にしました。変更はこの端末のブラウザに自動保存されます。</p>
@@ -104,18 +113,22 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v3';
+const storeKey='asobiland-softcream-adjust-v4';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
  commonColor:{...approvedPresets.commonColor},
  coneOverrides:Object.fromEntries(Object.entries(approvedPresets.coneOverrides).map(([name,v])=>[coneNames.indexOf(name),{...v}])),
- colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}]))
+ colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
+ toppings:{
+  sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100},
+  sprinkle:{style:'none',x:0,y:0,w:100,h:100,opacity:100,double:false,secondX:9,secondY:8}
+ }
 });
 let data=defaults();
 try{
  const saved=JSON.parse(localStorage.getItem(storeKey));
- if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides)data=saved;
+ if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides&&saved.toppings)data=saved;
 }catch(e){}
 function coneSettings(){return data.coneOverrides[chosen.cone]||data.commonCone;}
 function colorSettings(){return data.colorOverrides[chosen.flavor]||data.commonColor;}
@@ -146,6 +159,41 @@ function controls(where,defs,type){
  }
 }
 controls('coneSliders',coneDefs,'cone');controls('iceSliders',iceDefs,'cone');controls('colorSliders',colorDefs,'color');
+const toppingDefs=[
+ ['x','左右位置',-120,120,1,''],['y','上下位置',-120,120,1,''],
+ ['w','横幅',40,200,1,'%'],['h','高さ',40,200,1,'%'],['opacity','不透明度',0,100,1,'%']
+];
+function toppingControls(group){
+ const root=group==='sauce'?'sauceSliders':'sprinkleSliders';
+ const extra=group==='sprinkle'?[['secondX','2枚目の左右ずらし',-60,60,1,''],['secondY','2枚目の上下ずらし',-60,60,1,'']]:[];
+ const defs=toppingDefs.concat(extra);
+ $(root).innerHTML=defs.map(([key,label,min,max,step,unit])=>{
+  const id=group+'_'+key;
+  return '<div class="slide"><label for="'+id+'">'+label+' <output id="o_'+id+'"></output></label><input id="'+id+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"></div>';
+ }).join('');
+ for(const [key,,,,,unit] of defs){
+  const id=group+'_'+key;
+  $(id).addEventListener('input',()=>{
+   data.toppings[group][key]=Number($(id).value);
+   $('o_'+id).textContent=data.toppings[group][key]+unit;render();
+  });
+ }
+}
+toppingControls('sauce');toppingControls('sprinkle');
+function syncToppings(){
+ for(const group of ['sauce','sprinkle']){
+  const obj=data.toppings[group],defs=toppingDefs.concat(group==='sprinkle'?[['secondX','',0,0,1,''],['secondY','',0,0,1,'']]:[]);
+  for(const [key,,,,,unit] of defs){const id=group+'_'+key;$(id).value=obj[key];$('o_'+id).textContent=obj[key]+unit;}
+ }
+ $('sauceKind').value=data.toppings.sauce.kind;
+ $('sauceStyle').value=data.toppings.sauce.style;
+ $('sprinkleStyle').value=data.toppings.sprinkle.style;
+ $('sprinkleDouble').checked=data.toppings.sprinkle.double;
+}
+for(const [id,group,key] of [['sauceKind','sauce','kind'],['sauceStyle','sauce','style'],['sprinkleStyle','sprinkle','style']]){
+ $(id).addEventListener('change',()=>{data.toppings[group][key]=$(id).value;render();});
+}
+$('sprinkleDouble').addEventListener('change',()=>{data.toppings.sprinkle.double=$('sprinkleDouble').checked;render();});
 function sync(){
  const c=coneSettings(),f=colorSettings();
  for(const [key,,,,,unit] of [...coneDefs,...iceDefs,...colorDefs]){
@@ -203,6 +251,75 @@ async function checkLayers(i){
  const ok=await Promise.all([test(base+'-front.png'),test(base+'-back.png')]);
  ready.set(i,ok.every(Boolean));render();
 }
+// Toppings are clipped by the actual alpha of the extended ice, and remain
+// below the foreground cone. The original PNG option uses the game assets.
+const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.png',white:'sauce-white.png'};
+const sauceColors={chocolate:['#361a11','#7d3f27'],strawberry:['#b91c4c','#f25b80'],white:['#fff8e5','#e8ceaf']};
+function svgSauce(kind,style){
+ const colors=sauceColors[kind]||sauceColors.chocolate;
+ if(style==='pen'){
+  const lines=[
+   'M30 70 C61 35 91 54 121 30 S184 36 210 14',
+   'M18 104 C56 77 87 87 119 65 S175 72 223 42',
+   'M31 135 C70 107 101 112 134 93 S175 105 210 74',
+   'M49 160 C75 138 118 140 151 123 S177 133 201 115',
+   'M69 185 C99 160 127 171 171 147'
+  ];
+  return '<g fill="none" stroke-linecap="round" stroke-linejoin="round">'+lines.map((d,i)=>
+   '<path d="'+d+'" stroke="'+colors[0]+'" stroke-width="'+(i%2===0?7:5)+'"/><path d="'+d+'" stroke="'+colors[1]+'" stroke-width="1.8" opacity=".72" transform="translate(0 -1.5)"/>'
+  ).join('')+'</g>';
+ }
+ const paths=[
+ 'M25 69 Q39 24 75 39 Q86 25 107 37 Q126 17 149 39 Q170 23 192 46 Q214 52 223 79 L210 94 Q205 113 201 139 Q194 151 187 138 L182 92 Q174 89 165 98 L160 154 Q154 172 147 156 L139 100 Q125 106 110 104 L103 159 Q96 179 89 160 L82 103 Q69 103 62 97 L57 131 Q49 143 45 131 L42 90 Q32 92 25 69Z',
+ 'M58 56 Q72 44 83 54 Q100 42 112 54 Q127 39 146 56 Q164 48 177 57 L172 85 Q154 72 144 83 Q124 71 108 83 Q91 75 74 87Z'
+ ];
+ return '<g><path d="'+paths[0]+'" fill="'+colors[0]+'" stroke="'+colors[0]+'" stroke-width="2"/><path d="'+paths[1]+'" fill="'+colors[1]+'" opacity=".65"/></g>';
+}
+const sprinklePalette=['#ef5162','#f386ac','#f4a23d','#f7d64f','#6ab765','#fff3dc','#845130'];
+function sprinklesVector(style){
+ const count=style==='dense'?174:88;
+ let seed=style==='dense'?5291:9104;
+ const random=()=>{seed=(1664525*seed+1013904223)>>>0;return seed/4294967296;};
+ let out='';
+ for(let i=0;i<count;i++){
+  const y=16+Math.pow(random(),1.45)*208;
+  const x=26+random()*198;
+  const len=style==='fine'?4+random()*5:5+random()*7;
+  const thick=style==='fine'?1.7+random()*1.5:2.6+random()*2;
+  const rot=Math.round(random()*165-82);
+  const color=sprinklePalette[Math.floor(random()*sprinklePalette.length)];
+  out+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+len.toFixed(1)+'" height="'+thick.toFixed(1)+'" rx="'+(thick/2).toFixed(1)+'" fill="'+color+'" transform="rotate('+rot+' '+x.toFixed(1)+' '+y.toFixed(1)+')"/>';
+ }
+ return out;
+}
+const sprinkleVectorCache={fine:sprinklesVector('fine'),dense:sprinklesVector('dense')};
+function adjustedToppingBounds(p,settings,isSprinkle){
+ const w=p.w*(isSprinkle?1.12:.93)*(settings.w/100);
+ const h=p.h*(isSprinkle?1.22:.70)*(settings.h/100);
+ return {x:p.x+(p.w-w)/2+settings.x,y:p.y+(isSprinkle?-8:33)+settings.y,w,h};
+}
+function drawToppings(p,ext,iceArt){
+ const mask='<defs><mask id="iceToppingMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+iceArt+'</mask></defs>';
+ function drawSauce(){
+  const t=data.toppings.sauce;
+  if(t.kind==='none')return '';
+  const r=adjustedToppingBounds(p,t,false);
+  const graphic=t.style==='original'?imageTag(sauceFiles[t.kind],{...r}):
+    '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
+  return '<g mask="url(#iceToppingMask)" opacity="'+t.opacity/100+'">'+graphic+'</g>';
+ }
+ function drawSprinkles(){
+  const t=data.toppings.sprinkle;
+  if(t.style==='none')return '';
+  const r=adjustedToppingBounds(p,t,true);
+  const one=(dx,dy)=>t.style==='original'?
+    imageTag('sprinkles-rainbow.png',{x:r.x+dx,y:r.y+dy,w:r.w,h:r.h}):
+    '<svg x="'+(r.x+dx)+'" y="'+(r.y+dy)+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+sprinkleVectorCache[t.style]+'</svg>';
+  return '<g mask="url(#iceToppingMask)" opacity="'+t.opacity/100+'">'+one(0,0)+(t.double?one(t.secondX,t.secondY):'')+'</g>';
+ }
+ $('toppingSauce').innerHTML=mask+drawSauce();
+ $('toppingSprinkles').innerHTML=mask+drawSprinkles();
+}
 function render(){
  const c=cp(),p=ip(),fl=colorSettings(),name=coneName(),base=name.replace(/\.png$/,'');
  const layers=ready.get(chosen.cone);
@@ -219,8 +336,9 @@ function render(){
   $('ice').innerHTML='<defs>'+filter+'<mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
   '<g filter="url(#iceColorCorrection)" style="isolation:isolate">'+art+(chosen.flavor===0?'':'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(mode)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+selectedTint()+'" opacity="'+(fl.opacity/100)+'"/></g>')+'</g>';
  }
+ drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:3,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:4,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
@@ -231,7 +349,7 @@ $('resetSelected').onclick=()=>{
  delete data.coneOverrides[chosen.cone];delete data.colorOverrides[chosen.flavor];
  sync();render();
 };
-$('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();render();};
+$('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();syncToppings();render();};
 for(let i=0;i<6;i++)checkLayers(i);
-sync();render();prepareCreamExtensions(render);
+sync();syncToppings();render();prepareCreamExtensions(render);
 </script></body></html>
