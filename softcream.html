@@ -84,8 +84,12 @@ function icePicture(n,shape=state.shape){
    4:{mode:'multiply',color:'#865237',opacity:1}  // cocoa chocolate
  };
  const recipe=recipes[n]||{mode:'color',color:flavors[n][2],opacity:1};
+ // A light contrast boost after multiply restores definition in the folds.
+ // Only the three dark flavours are affected; vanilla and pastel flavours
+ // keep their original rendering.
+ const contrast=(n===2||n===3||n===4)?'filter:contrast(1.16) saturate(1.04);':'';
  return '<defs><mask id="'+id+'" maskUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+img+'</mask></defs>'+
- '<g style="isolation:isolate">'+img+
+ '<g style="isolation:isolate;'+contrast+'">'+img+
  '<g mask="url(#'+id+')" style="mix-blend-mode:'+recipe.mode+'">'+
  '<rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+recipe.color+'" opacity="'+recipe.opacity+'"/>'+
  '</g></g>';
