@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>ソフトクリーム調整室 | あそびランド</title>
+<style>
+*{box-sizing:border-box}body{font-family:system-ui,-apple-system,"Hiragino Kaku Gothic ProN",sans-serif;margin:0;background:#fff4e4;color:#503b31}header{background:#ffe0a9;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}header h1{font-size:18px;margin:0}a{color:#76512f}main{display:grid;grid-template-columns:minmax(245px,44%) minmax(315px,1fr);min-height:calc(100dvh - 56px)}.stage{position:sticky;top:0;height:calc(100dvh - 56px);min-height:360px;background:linear-gradient(#fffbed,#f7dfb3);display:flex;align-items:center;justify-content:center;padding:3px;overflow:hidden}.stage svg{width:100%;height:100%;max-height:700px}.settings{padding:12px;overflow:auto;max-height:calc(100dvh - 56px)}.panel{background:white;border-radius:14px;padding:12px;margin-bottom:12px;box-shadow:0 2px 9px #855c2a1a}.panel h2{font-size:16px;margin:0 0 10px}.selectors{display:grid;grid-template-columns:1fr 1fr;gap:8px}.field{display:flex;flex-direction:column;font-size:13px;font-weight:600;gap:4px}.field select,.field input[type=color]{height:38px;background:#fff9f0;border:1px solid #d0bfa8;border-radius:8px;padding:6px;min-width:0}.sliders{display:grid;grid-template-columns:1fr 1fr;gap:11px 14px}.slide{min-width:0}.slide label{display:flex;justify-content:space-between;gap:5px;font-size:13px;font-weight:600}.slide output{font-variant-numeric:tabular-nums;color:#8b5930}.slide input{width:100%;accent-color:#e98544;height:25px}.actions{display:flex;flex-wrap:wrap;gap:8px}button{padding:10px;border-radius:9px;border:0;background:#f3dfc6;color:#503b31;font-weight:700;cursor:pointer}button.main{background:#e87f48;color:#fff}.note{font-size:12px;line-height:1.55;color:#746356;margin:8px 0 0}textarea{width:100%;height:124px;border:1px solid #cebba8;border-radius:8px;padding:8px;resize:vertical;font-family:monospace;font-size:11px}#status{font-size:12px;color:#467347}details summary{cursor:pointer;font-weight:700}
+@media(max-width:720px){header{padding:7px 10px}main{display:block}.stage{height:48dvh;min-height:270px;position:sticky;top:0;z-index:2;border-bottom:3px solid #e8c690}.settings{max-height:none;overflow:visible;padding:9px}.sliders{gap:10px}.panel{padding:10px;margin-bottom:9px}}
+</style></head><body>
+<header><h1>🍦 ソフトクリーム調整室</h1><a href="softcream.html">ゲームへ戻る</a><span class="note">調整専用・ゲーム本体は変わりません</span></header>
+<main><div class="stage"><svg id="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 16 250 405" aria-label="ソフトクリーム配置プレビュー">
+<g id="back"></g><g id="ice"></g><g id="front"></g><g id="stand"></g></svg></div>
+<section class="settings">
+<div class="panel"><h2>表示する組み合わせ</h2>
+<div class="selectors"><label class="field">コーン<select id="cone"></select></label><label class="field">アイス形状<select id="shape"></select></label><label class="field">味<select id="flavor"></select></label><label class="field">背景<select id="bg"><option value="cream">クリーム色</option><option value="white">白</option><option value="dark">濃い色</option></select></label></div>
+<p class="note">位置設定はコーンの種類ごと、色設定は味ごとに保存。変更は即時に反映されます。</p></div>
+<div class="panel"><h2>コーンの大きさ・位置（コーンごと）</h2><div class="sliders" id="coneSliders"></div>
+<p class="note">横幅を増やすとアイスに対して口が広くなります。BIGだけ別の倍率にできるよ。</p></div>
+<div class="panel"><h2>アイスの大きさ・位置（コーンごと）</h2><div class="sliders" id="iceSliders"></div>
+<p class="note">「アイス幅」と「アイス高さ」は形を伸ばす倍率。縦横の比率はなるべく揃えるのがおすすめ。カップだけは初期設定で低く入ります。</p></div>
+<div class="panel"><h2>色・陰影（味ごと）</h2>
+<div class="selectors"><label class="field">合成方法<select id="blend"><option value="color">color（元の明暗を保持）</option><option value="multiply">multiply（濃くなる）</option><option value="overlay">overlay（コントラスト強め）</option><option value="soft-light">soft-light（やわらかい）</option><option value="hard-light">hard-light（強い発色）</option></select></label><label class="field">重ねる色<input type="color" id="tint"></label></div>
+<div class="sliders" id="colorSliders" style="margin-top:13px"></div>
+<p class="note">「彩度」は重ねた後の彩度、「コントラスト」は巻き目の明暗を調整。バニラは元画像をそのまま表示します。</p></div>
+<div class="panel"><h2>仕上がった設定を共有</h2>
+<div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の種類を初期化</button><button id="resetAll">全部初期化</button></div>
+<p id="status">変更はこの端末のブラウザに自動保存されます。</p>
+<details open><summary>設定データ（コピーしてチャットに貼ってください）</summary><textarea id="export" spellcheck="false" readonly></textarea></details>
+<p class="note">ここで調整しただけではゲーム本体は変わりません。コピーしたデータを送ってもらった後、ゲーム本体へ反映します。</p></div>
+</section></main>
+<script>
+'use strict';
+const coneNames=['ワッフル','チョコワッフル','カラフル','フラワー','ビッグ','ワッフルカップ'];
+const shapes=['まるまる','ぐるぐる','ほそほそ'];
+const flavors=['バニラ','いちご','ラズベリー','抹茶','チョコ','ラムネ','みかん','ラベンダー','レモン'];
+const flavorColor=['#fff0d2','#f5a0bc','#d92748','#77a057','#865237','#85d8f2','#f7a13d','#bba3dd','#f4e34f'];
+const coneBase=[{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:37,y:191,w:176,h:200},{x:34,y:174,w:182,h:171}];
+const iceBase=[{x:41,y:44,w:168,h:224},{x:41,y:39,w:168,h:224},{x:41,y:30,w:168,h:224}];
+const files=['soft-round.png','soft-classic.png','soft-fine.png'];
+const storeKey='asobiland-softcream-adjust-v1';
+const defaults=()=>({
+ cones:coneNames.map((_,i)=>({cw:100,ch:100,cx:0,cy:0,iw:100,ih:100,ix:0,iy:i===5?45:0})),
+ colors:flavors.map((_,i)=>({blend:[2,3,4].includes(i)?'multiply':'color',tint:flavorColor[i],opacity:100,saturation:100,contrast:[2,3,4].includes(i)?116:100,brightness:100}))
+});
+let data=defaults();
+try{const saved=JSON.parse(localStorage.getItem(storeKey));if(saved&&Array.isArray(saved.cones)&&saved.cones.length===6&&Array.isArray(saved.colors)&&saved.colors.length===9)data=saved;}catch(e){}
+const $=id=>document.getElementById(id);
+let chosen={cone:0,shape:1,flavor:0};
+for(const [id,items] of [['cone',coneNames],['shape',shapes],['flavor',flavors]]){$(id).innerHTML=items.map((n,i)=>'<option value="'+i+'">'+n+'</option>').join('');}
+$('shape').value='1';
+const coneDefs=[
+ ['cw','コーン横幅',65,190,1,'%'],['ch','コーン高さ',70,160,1,'%'],
+ ['cx','コーン左右位置',-65,65,1,''],['cy','コーン上下位置',-90,90,1,'']
+];
+const iceDefs=[
+ ['iw','アイス横幅',65,165,1,'%'],['ih','アイス高さ',65,165,1,'%'],
+ ['ix','アイス左右位置',-80,80,1,''],['iy','アイス上下位置',-100,110,1,'']
+];
+const colorDefs=[
+ ['opacity','色の濃さ',0,100,1,'%'],['saturation','彩度',0,180,1,'%'],
+ ['contrast','コントラスト',50,220,1,'%'],['brightness','明るさ',60,160,1,'%']
+];
+function controls(where,defs,type){
+ $(where).innerHTML=defs.map(([key,label,min,max,step,unit])=>'<div class="slide"><label for="'+key+'">'+label+' <output id="o_'+key+'"></output></label><input id="'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"></div>').join('');
+ for(const [key,, ,,,unit] of defs){
+  $(key).addEventListener('input',()=>{
+   const obj=type==='cone'?data.cones[chosen.cone]:data.colors[chosen.flavor];
+   obj[key]=Number($(key).value);$('o_'+key).textContent=obj[key]+unit;render();
+  });
+ }
+}
+controls('coneSliders',coneDefs,'cone');controls('iceSliders',iceDefs,'cone');controls('colorSliders',colorDefs,'color');
+function sync(){
+ const c=data.cones[chosen.cone],f=data.colors[chosen.flavor];
+ for(const [key,,,,,unit] of [...coneDefs,...iceDefs,...colorDefs]){
+  const v=(key in c?c:f)[key];$(key).value=v;$('o_'+key).textContent=v+unit;
+ }
+ $('blend').value=f.blend;$('tint').value=f.tint;
+}
+for(const k of ['cone','shape','flavor'])$(k).addEventListener('change',()=>{chosen[k]=Number($(k).value);sync();render();});
+$('blend').addEventListener('change',()=>{data.colors[chosen.flavor].blend=$('blend').value;render();});
+$('tint').addEventListener('input',()=>{data.colors[chosen.flavor].tint=$('tint').value;render();});
+$('bg').addEventListener('change',()=>{
+ const colors={cream:'linear-gradient(#fffbed,#f7dfb3)',white:'#fff',dark:'#4a454f'};
+ document.querySelector('.stage').style.background=colors[$('bg').value];
+});
+function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function imageTag(name,p){return '<image href="'+esc(name)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="none"/>';}
+function cp(){
+ const p=coneBase[chosen.cone],v=data.cones[chosen.cone];
+ const w=p.w*v.cw/100,h=p.h*v.ch/100;
+ return {x:p.x+(p.w-w)/2+v.cx,y:p.y+(p.h-h)/2+v.cy,w,h};
+}
+function ip(){
+ const p=iceBase[chosen.shape],v=data.cones[chosen.cone];
+ const iw=chosen.cone===5?p.w-8:p.w,ih=chosen.cone===5?p.h-12:p.h;
+ const bx=chosen.cone===5?p.x+4:p.x;
+ const w=iw*v.iw/100,h=ih*v.ih/100;
+ return {x:bx+(iw-w)/2+v.ix,y:p.y+(p.h-ih)/2+v.iy,w,h};
+}
+function coneName(){
+ return chosen.cone===5?'cone-waffle-cup-raster.png':'cone-raster-'+chosen.cone+'.png';
+}
+const ready=new Map();
+async function checkLayers(i){
+ if(ready.has(i))return;
+ const base=i===5?'cone-waffle-cup-raster':'cone-raster-'+i;
+ const test=path=>new Promise(resolve=>{const im=new Image();im.onload=()=>resolve(true);im.onerror=()=>resolve(false);im.src=path;});
+ const ok=await Promise.all([test(base+'-front.png'),test(base+'-back.png')]);
+ ready.set(i,ok.every(Boolean));render();
+}
+function render(){
+ const c=cp(),p=ip(),fl=data.colors[chosen.flavor],name=coneName(),base=name.replace(/\.png$/,'');
+ const layers=ready.get(chosen.cone);
+ $('back').innerHTML=imageTag(layers?base+'-back.png':name,c);
+ $('front').innerHTML=layers?imageTag(base+'-front.png',c):'';
+ const art=imageTag(files[chosen.shape],p);
+ if(chosen.flavor===0){$('ice').innerHTML=art;}
+ else{
+  // This is the same image-alpha-mask + mix-blend-mode approach as the game.
+  const maskId='iceTintMask';
+  const s='saturate('+(fl.saturation/100)+') contrast('+(fl.contrast/100)+') brightness('+(fl.brightness/100)+')';
+  $('ice').innerHTML='<defs><mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
+  '<g style="isolation:isolate;filter:'+s+'">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(fl.blend)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" fill="'+fl.tint+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
+ }
+ $('stand').innerHTML=chosen.cone===5?'':'<image href="stand.png" x="56" y="264" width="138" height="137" preserveAspectRatio="none"/>';
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:1,coneSettings:Object.fromEntries(coneNames.map((n,i)=>[n,data.cones[i]])),flavorSettings:Object.fromEntries(flavors.map((n,i)=>[n,data.colors[i]]))},null,2);
+ try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
+}
+$('copy').onclick=async()=>{
+ const t=$('export').value;try{await navigator.clipboard.writeText(t);$('status').textContent='設定をコピーしました。このままチャットに貼ってね。';}
+ catch(e){$('export').focus();$('export').select();$('status').textContent='コピーできない場合は、選択した設定データを手動でコピーしてね。';}
+};
+$('resetSelected').onclick=()=>{
+ const original=defaults();data.cones[chosen.cone]=original.cones[chosen.cone];
+ data.colors[chosen.flavor]=original.colors[chosen.flavor];sync();render();
+};
+$('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();render();};
+for(let i=0;i<6;i++)checkLayers(i);
+sync();render();
+</script></body></html>
