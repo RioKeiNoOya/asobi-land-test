@@ -142,7 +142,7 @@ function probeToppings(){
    const img=new Image();
    img.onload=()=>{toppingReady[key]=true;render();};
    img.onerror=()=>{toppingReady[key]=false;};
-   img.src=file+'?toppings=3';
+   img.src=file+'?toppings=4';
  });
 }
 function toppingBounds(){
@@ -164,11 +164,13 @@ function toppingImage(file){
  // Keep the restored sauce artwork at a moderate size with a few downward
  // drips. Spread the existing original-color sprinkles over the whole scoop
  // while the actual scoop alpha masks anything outside its silhouette.
- const w=sprinkle?p.w*1.08:p.w*.92;
- const h=sprinkle?p.h*1.15:p.h*.54;
+ const w=sprinkle?p.w*1.12:p.w*.93;
+ const h=sprinkle?p.h*1.22:p.h*.70;
  const x=p.x+(p.w-w)/2;
- const y=p.y+(sprinkle?-8:24);
- return '<image href="'+file+'?toppings=3" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="'+(sprinkle?'none':'xMidYMid meet')+'" mask="url(#toppingIceAlpha)"/>';
+ // Sauce runs farther down the scoop; sprinkles cover the upper and lower
+ // folds, with the asset's own sparse tail visible below the dense top.
+ const y=p.y+(sprinkle?-8:33);
+ return '<image href="'+file+'?toppings=4" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet" mask="url(#toppingIceAlpha)"/>';
 }
 function sauceSvg(){
  const v=state.sauce;
