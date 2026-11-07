@@ -20,7 +20,7 @@
 <div class="sliders" id="colorSliders" style="margin-top:13px"></div>
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>ソースを比較</h2>
-<div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="strawberry">いちご</option><option value="white">ホワイト</option></select></label>
+<div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="strawberry">いちご</option><option value="white">ホワイトチョコ</option><option value="pink">ピンクチョコ</option></select></label>
 <label class="field">デザイン<select id="sauceStyle"><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
 <div class="sliders" id="sauceSliders" style="margin-top:12px"></div>
 <div style="border-top:1px solid #e9ddcf;margin-top:12px;padding-top:12px">
@@ -31,7 +31,7 @@
 </div><div class="sliders" id="shadeSliders"></div>
 <p class="note">濃さ0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
 </div>
-<p class="note">細いチョコペン風とドリップ風は新しいSVG試作。現行PNGとも比較できます。位置と大きさはアイスに対する割合です。</p></div>
+<p class="note">チョコ・ホワイトチョコ・ピンクチョコは「全面にかけるソース（四角ベース）」がおすすめです。ピンクの現行PNGは未制作なので、SVG試作を選んでください。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
 <label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
@@ -121,7 +121,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v7';
+const storeKey='asobiland-softcream-adjust-v8';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -339,8 +339,8 @@ function edgeSprinklesSvg(shape,p){
  }).join('');
 }
 
-const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.png',white:'sauce-white.png'};
-const sauceColors={chocolate:['#361a11','#7d3f27'],strawberry:['#b91c4c','#f25b80'],white:['#fff8e5','#e8ceaf']};
+const sauceFiles={chocolate:'sauce-chocolate.png',strawberry:'sauce-strawberry.png',white:'sauce-white.png',pink:'sauce-white.png'};
+const sauceColors={chocolate:['#512717','#a56b42'],strawberry:['#b91c4c','#f25b80'],white:['#e9dfc7','#fffaf2'],pink:['#d86d92','#ffb2c7']};
 function svgSauce(kind,style){
  const colors=sauceColors[kind]||sauceColors.chocolate;
  if(style==='flow'){
@@ -443,7 +443,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:7,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:8,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
