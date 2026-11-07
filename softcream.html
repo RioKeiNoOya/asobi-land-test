@@ -58,9 +58,17 @@ function flavorFilter(n){
    '</feComponentTransfer></filter>';
 }
 const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
+// High-resolution artwork contains transparent padding. Align the visible
+// bottom of each swirl with the top of the cone (not the PNG canvas edge).
+const icePlacement=[
+ {x:41,y:44,w:168,h:224}, // round: lower silhouette in the source canvas
+ {x:41,y:39,w:168,h:224}, // classic
+ {x:41,y:30,w:168,h:224}  // fine: taller, higher tip
+];
 function icePicture(n,shape=state.shape){
  const filter=n===0?'':' filter="url(#flavorTint'+n+')"';
- return '<image href="'+iceFiles[shape]+'?art=original-1" x="62" y="42" width="126" height="192" preserveAspectRatio="xMidYMid meet"'+filter+'/>';
+ const p=icePlacement[shape]||icePlacement[1];
+ return '<image href="'+iceFiles[shape]+'?art=aligned-2" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="xMidYMid meet"'+filter+'/>';
 }
 function oneScoop(n,shape=state.shape){
  return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape);
