@@ -113,7 +113,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v4';
+const storeKey='asobiland-softcream-adjust-v5';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -122,7 +122,7 @@ const defaults=()=>({
  colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
  toppings:{
   sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100},
-  sprinkle:{style:'none',x:0,y:0,w:100,h:100,opacity:100,double:false,secondX:9,secondY:8}
+  sprinkle:{style:'original',x:1,y:-1,w:120,h:130,opacity:100,double:false,secondX:24,secondY:-42}
  }
 });
 let data=defaults();
@@ -338,7 +338,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:4,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:5,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
