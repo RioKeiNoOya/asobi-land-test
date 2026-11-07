@@ -28,12 +28,12 @@ function pageChange(d){page=Math.max(0,Math.min(page+d,Math.ceil(currentOptions(
 // Back layer provides the cone body; the forward lip is re-drawn after the ice.
 // Keeping both layers sourced from the same image avoids mismatched textures.
 const coneGeometry=[
- {x:60,y:207,w:130,h:180,lip:224},
- {x:60,y:207,w:130,h:180,lip:224},
- {x:60,y:207,w:130,h:180,lip:225},
- {x:60,y:207,w:130,h:180,lip:225},
- {x:53,y:200,w:144,h:188,lip:224},
- {x:55,y:190,w:140,h:157,lip:237}
+ {x:43,y:196,w:164,h:193,lip:222},
+ {x:43,y:196,w:164,h:193,lip:222},
+ {x:43,y:196,w:164,h:193,lip:223},
+ {x:43,y:196,w:164,h:193,lip:223},
+ {x:37,y:191,w:176,h:200,lip:222},
+ {x:34,y:174,w:182,h:171,lip:234}
 ];
 function coneAsset(i=state.cone){
  return i===5?'cone-waffle-cup-raster.png':'cone-raster-'+Math.min(i,4)+'.png';
@@ -90,7 +90,7 @@ function icePicture(n,shape=state.shape){
  const p=icePlacement[shape]||icePlacement[1];
  // Waffle cups seat the scoop deeper, so the front of the cup can overlap it.
  const cup=state.cone===5;
- const x=cup?p.x+8:p.x, y=cup?p.y+25:p.y, w=cup?p.w-16:p.w, h=cup?p.h-12:p.h;
+ const x=cup?p.x+4:p.x, y=cup?p.y+45:p.y, w=cup?p.w-8:p.w, h=cup?p.h-12:p.h;
  const src=iceFiles[shape]+'?art=aligned-2';
  const img='<image href="'+src+'" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="xMidYMid meet"/>';
  if(n===0)return img;
