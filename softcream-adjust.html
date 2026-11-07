@@ -34,6 +34,76 @@ const flavorColor=['#fff0d2','#f5a0bc','#d92748','#77a057','#865237','#85d8f2','
 const coneBase=[{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:43,y:196,w:164,h:193},{x:37,y:191,w:176,h:200},{x:34,y:174,w:182,h:171}];
 const iceBase=[{x:41,y:44,w:168,h:224},{x:41,y:39,w:168,h:224},{x:41,y:30,w:168,h:224}];
 const files=['soft-round.png','soft-classic.png','soft-fine.png'];
+
+/* Create a real textured continuation from the lower opaque pixels of each
+   original swirl. Generated once per shape; never changes PNG files. */
+const extendedCreamSources={};
+const extendedCreamFactor={};
+function prepareCreamExtensions(onReady){
+ files.forEach((file,shape)=>{
+  const im=new Image();
+  im.onload=()=>{
+   try{
+    const w=im.naturalWidth,h=im.naturalHeight;
+    const src=document.createElement('canvas');src.width=w;src.height=h;
+    const sc=src.getContext('2d',{willReadFrequently:true});sc.drawImage(im,0,0);
+    const pixels=sc.getImageData(0,0,w,h).data;
+    let minX=w,maxX=0,maxY=0;
+    for(let y=0;y<h;y+=2)for(let x=0;x<w;x+=2){
+      if(pixels[(y*w+x)*4+3]>180){minX=Math.min(minX,x);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);}
+    }
+    if(maxX<=minX)return;
+    const extra=Math.round(h*.22);
+    const out=document.createElement('canvas');out.width=w;out.height=h+extra;
+    const ctx=out.getContext('2d',{willReadFrequently:true});
+    const width=maxX-minX,center=(minX+maxX)/2;
+    // Follow the actual visible bottom of the photographed swirl.
+    const edgeXs=[];
+    for(let x=minX;x<=maxX;x++){
+      let last=-1;
+      for(let y=maxY;y>=Math.max(0,maxY-Math.round(h*.23));y--){
+       if(pixels[(y*w+x)*4+3]>140){last=y;break;}
+      }
+      edgeXs[x]=last;
+    }
+    const img=ctx.createImageData(w,h+extra),dst=img.data;
+    const depth=Math.round(h*.14);
+    for(let x=minX;x<=maxX;x++){
+      let bottom=edgeXs[x];if(bottom<maxY-depth)continue;
+      const distance=Math.abs(x-center)/(width/2);
+      if(distance>.75)continue;
+      const fullDepth=Math.round(extra*(.98-.55*Math.pow(distance/.75,2)));
+      for(let t=-Math.round(h*.012);t<fullDepth;t++){
+       const y=bottom+t;if(y<0||y>=h+extra)continue;
+       // Maintain original photographic folds by carrying neighboring
+       // lower rows down, with gently varying source sampling.
+       const sampleY=Math.max(0,Math.min(h-1,bottom-Math.round(h*(.016+.012*Math.sin(t/Math.max(1,h)*34+x/Math.max(1,w)*10)))));
+       let sampleX=x+Math.round(Math.sin(t*.045+x*.017)*w*.003);
+       sampleX=Math.max(0,Math.min(w-1,sampleX));
+       let index=(sampleY*w+sampleX)*4;
+       if(pixels[index+3]<50){
+        index=(Math.max(0,bottom-Math.round(h*.03))*w+x)*4;
+       }
+       if(pixels[index+3]<20)continue;
+       const z=(y*w+x)*4;dst[z]=pixels[index];dst[z+1]=pixels[index+1];dst[z+2]=pixels[index+2];
+       const edgeFade=Math.min(1,(.75-distance)*18);
+       dst[z+3]=Math.round(255*Math.min(1,Math.max(0,edgeFade)));
+      }
+    }
+    ctx.putImageData(img,0,0);ctx.drawImage(im,0,0);
+    extendedCreamSources[shape]=out.toDataURL('image/png');
+    extendedCreamFactor[shape]=(h+extra)/h;
+    onReady();
+   }catch(error){console.warn('cream texture continuation unavailable',error);}
+  };
+  im.src=file;
+ });
+}
+function creamSource(shape){return extendedCreamSources[shape]||files[shape];}
+function creamImageGeometry(p,shape){
+ return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
+}
+
 const storeKey='asobiland-softcream-adjust-v1';
 const defaults=()=>({
  cones:coneNames.map((_,i)=>({cw:100,ch:100,cx:0,cy:0,iw:100,ih:100,ix:0,iy:i===5?45:0})),
@@ -111,14 +181,15 @@ function render(){
  const layers=ready.get(chosen.cone);
  $('back').innerHTML=imageTag(layers?base+'-back.png':name,c);
  $('front').innerHTML=layers?imageTag(base+'-front.png',c):'';
- const art=imageTag(files[chosen.shape],p);
+ const ext=creamImageGeometry(p,chosen.shape);
+ const art=imageTag(creamSource(chosen.shape),ext);
  if(chosen.flavor===0){$('ice').innerHTML=art;}
  else{
   // This is the same image-alpha-mask + mix-blend-mode approach as the game.
   const maskId='iceTintMask';
   const s='saturate('+(fl.saturation/100)+') contrast('+(fl.contrast/100)+') brightness('+(fl.brightness/100)+')';
-  $('ice').innerHTML='<defs><mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
-  '<g style="isolation:isolate;filter:'+s+'">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(fl.blend)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" fill="'+fl.tint+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
+  $('ice').innerHTML='<defs><mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
+  '<g style="isolation:isolate;filter:'+s+'">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(fl.blend)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+fl.tint+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
  }
  $('stand').innerHTML=chosen.cone===5?'':'<image href="stand.png" x="56" y="264" width="138" height="137" preserveAspectRatio="none"/>';
  $('export').value=JSON.stringify({type:'softcream-adjust',version:1,coneSettings:Object.fromEntries(coneNames.map((n,i)=>[n,data.cones[i]])),flavorSettings:Object.fromEntries(flavors.map((n,i)=>[n,data.colors[i]]))},null,2);
@@ -134,5 +205,5 @@ $('resetSelected').onclick=()=>{
 };
 $('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();render();};
 for(let i=0;i<6;i++)checkLayers(i);
-sync();render();
+sync();render();prepareCreamExtensions(render);
 </script></body></html>
