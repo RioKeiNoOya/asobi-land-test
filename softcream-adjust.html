@@ -150,7 +150,6 @@ function sync(){
   const v=(key in c?c:f)[key];$(key).value=v;$('o_'+key).textContent=v+unit;
  }
  $('blend').value=f.blend;$('tint').value=selectedTint();
- $('tint').disabled=!$('colorIndividual').checked;
  $('coneIndividual').checked=Object.hasOwn(data.coneOverrides,chosen.cone);
  $('colorIndividual').checked=Object.hasOwn(data.colorOverrides,chosen.flavor);
  $('tint').disabled=!$('colorIndividual').checked;
@@ -209,18 +208,17 @@ function render(){
  $('front').innerHTML=layers?imageTag(base+'-front.png',c):'';
  const ext=creamImageGeometry(p,chosen.shape);
  const art=imageTag(creamSource(chosen.shape),ext);
- if(chosen.flavor===0){$('ice').innerHTML=art;}
- else{
+ {
   // This is the same image-alpha-mask + mix-blend-mode approach as the game.
   const maskId='iceTintMask';
   const contrast=fl.contrast/100, brightness=fl.brightness/100, slope=contrast*brightness, intercept=.5*(1-contrast)*brightness;
   const filter='<filter id="iceColorCorrection" filterUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="'+(fl.saturation/100)+'"/><feComponentTransfer><feFuncR type="linear" slope="'+slope+'" intercept="'+intercept+'"/><feFuncG type="linear" slope="'+slope+'" intercept="'+intercept+'"/><feFuncB type="linear" slope="'+slope+'" intercept="'+intercept+'"/></feComponentTransfer></filter>';
   const mode=fl.blend==='auto'?[2,3,4].includes(chosen.flavor)?'multiply':'color':fl.blend;
   $('ice').innerHTML='<defs>'+filter+'<mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
-  '<g filter="url(#iceColorCorrection)" style="isolation:isolate">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(mode)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+selectedTint()+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
+  '<g filter="url(#iceColorCorrection)" style="isolation:isolate">'+art+(chosen.flavor===0?'':'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(mode)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+selectedTint()+'" opacity="'+(fl.opacity/100)+'"/></g>')+'</g>';
  }
  $('stand').innerHTML=chosen.cone===5?'':'<image href="stand.png" x="56" y="264" width="138" height="137" preserveAspectRatio="none"/>';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:1,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:2,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
