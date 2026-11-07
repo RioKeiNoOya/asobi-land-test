@@ -10,17 +10,17 @@
 <section class="settings">
 <div class="panel"><h2>表示する組み合わせ</h2>
 <div class="selectors"><label class="field">コーン<select id="cone"></select></label><label class="field">アイス形状<select id="shape"></select></label><label class="field">味<select id="flavor"></select></label><label class="field">背景<select id="bg"><option value="cream">クリーム色</option><option value="white">白</option><option value="dark">濃い色</option></select></label></div>
-<p class="note">位置設定はコーンの種類ごと、色設定は味ごとに保存。変更は即時に反映されます。</p></div>
-<div class="panel"><h2>コーンの大きさ・位置（コーンごと）</h2><div class="sliders" id="coneSliders"></div>
+<p class="note">通常は全種類に共通の設定です。個別調整をONにすると、そのコーン・味だけ別の値になります。</p></div>
+<div class="panel"><h2>コーンの大きさ・位置</h2><label><input type="checkbox" id="coneIndividual"> このコーンだけ個別調整する</label><p class="note" id="coneMode">共通設定を編集中</p><div class="sliders" id="coneSliders"></div>
 <p class="note">横幅を増やすとアイスに対して口が広くなります。BIGだけ別の倍率にできるよ。</p></div>
-<div class="panel"><h2>アイスの大きさ・位置（コーンごと）</h2><div class="sliders" id="iceSliders"></div>
+<div class="panel"><h2>アイスの大きさ・位置</h2><div class="sliders" id="iceSliders"></div>
 <p class="note">「アイス幅」と「アイス高さ」は形を伸ばす倍率。縦横の比率はなるべく揃えるのがおすすめ。カップだけは初期設定で低く入ります。</p></div>
-<div class="panel"><h2>色・陰影（味ごと）</h2>
-<div class="selectors"><label class="field">合成方法<select id="blend"><option value="color">color（元の明暗を保持）</option><option value="multiply">multiply（濃くなる）</option><option value="overlay">overlay（コントラスト強め）</option><option value="soft-light">soft-light（やわらかい）</option><option value="hard-light">hard-light（強い発色）</option></select></label><label class="field">重ねる色<input type="color" id="tint"></label></div>
+<div class="panel"><h2>色・陰影</h2><label><input type="checkbox" id="colorIndividual"> この味だけ個別調整する</label><p class="note" id="colorMode">共通設定を編集中</p>
+<div class="selectors"><label class="field">合成方法<select id="blend"><option value="auto">自動（濃い味は乗算）</option><option value="color">color（元の明暗を保持）</option><option value="multiply">multiply（濃くなる）</option><option value="overlay">overlay（コントラスト強め）</option><option value="soft-light">soft-light（やわらかい）</option><option value="hard-light">hard-light（強い発色）</option></select></label><label class="field">重ねる色<input type="color" id="tint"></label></div>
 <div class="sliders" id="colorSliders" style="margin-top:13px"></div>
-<p class="note">「彩度」は重ねた後の彩度、「コントラスト」は巻き目の明暗を調整。バニラは元画像をそのまま表示します。</p></div>
+<p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>仕上がった設定を共有</h2>
-<div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の種類を初期化</button><button id="resetAll">全部初期化</button></div>
+<div class="actions"><button class="main" id="copy">設定をコピー</button><button id="resetSelected">選択中の個別設定を解除</button><button id="resetAll">全部初期化</button></div>
 <p id="status">変更はこの端末のブラウザに自動保存されます。</p>
 <details open><summary>設定データ（コピーしてチャットに貼ってください）</summary><textarea id="export" spellcheck="false" readonly></textarea></details>
 <p class="note">ここで調整しただけではゲーム本体は変わりません。コピーしたデータを送ってもらった後、ゲーム本体へ反映します。</p></div>
@@ -104,13 +104,20 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v1';
+const storeKey='asobiland-softcream-adjust-v2';
 const defaults=()=>({
- cones:coneNames.map((_,i)=>({cw:100,ch:100,cx:0,cy:0,iw:100,ih:100,ix:0,iy:i===5?45:0})),
- colors:flavors.map((_,i)=>({blend:[2,3,4].includes(i)?'multiply':'color',tint:flavorColor[i],opacity:100,saturation:100,contrast:[2,3,4].includes(i)?116:100,brightness:100}))
+ commonCone:{cw:100,ch:100,cx:0,cy:0,iw:100,ih:100,ix:0,iy:0},
+ commonColor:{blend:'auto',tint:null,opacity:100,saturation:100,contrast:100,brightness:100},
+ coneOverrides:{},colorOverrides:{}
 });
 let data=defaults();
-try{const saved=JSON.parse(localStorage.getItem(storeKey));if(saved&&Array.isArray(saved.cones)&&saved.cones.length===6&&Array.isArray(saved.colors)&&saved.colors.length===9)data=saved;}catch(e){}
+try{
+ const saved=JSON.parse(localStorage.getItem(storeKey));
+ if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides)data=saved;
+}catch(e){}
+function coneSettings(){return data.coneOverrides[chosen.cone]||data.commonCone;}
+function colorSettings(){return data.colorOverrides[chosen.flavor]||data.commonColor;}
+function selectedTint(){return colorSettings().tint||flavorColor[chosen.flavor];}
 const $=id=>document.getElementById(id);
 let chosen={cone:0,shape:1,flavor:0};
 for(const [id,items] of [['cone',coneNames],['shape',shapes],['flavor',flavors]]){$(id).innerHTML=items.map((n,i)=>'<option value="'+i+'">'+n+'</option>').join('');}
@@ -129,24 +136,43 @@ const colorDefs=[
 ];
 function controls(where,defs,type){
  $(where).innerHTML=defs.map(([key,label,min,max,step,unit])=>'<div class="slide"><label for="'+key+'">'+label+' <output id="o_'+key+'"></output></label><input id="'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"></div>').join('');
- for(const [key,, ,,,unit] of defs){
+ for(const [key,,,,,unit] of defs){
   $(key).addEventListener('input',()=>{
-   const obj=type==='cone'?data.cones[chosen.cone]:data.colors[chosen.flavor];
+   const obj=type==='cone'?coneSettings():colorSettings();
    obj[key]=Number($(key).value);$('o_'+key).textContent=obj[key]+unit;render();
   });
  }
 }
 controls('coneSliders',coneDefs,'cone');controls('iceSliders',iceDefs,'cone');controls('colorSliders',colorDefs,'color');
 function sync(){
- const c=data.cones[chosen.cone],f=data.colors[chosen.flavor];
+ const c=coneSettings(),f=colorSettings();
  for(const [key,,,,,unit] of [...coneDefs,...iceDefs,...colorDefs]){
   const v=(key in c?c:f)[key];$(key).value=v;$('o_'+key).textContent=v+unit;
  }
- $('blend').value=f.blend;$('tint').value=f.tint;
+ $('blend').value=f.blend;$('tint').value=selectedTint();
+ $('tint').disabled=!$('colorIndividual').checked;
+ $('coneIndividual').checked=Object.hasOwn(data.coneOverrides,chosen.cone);
+ $('colorIndividual').checked=Object.hasOwn(data.colorOverrides,chosen.flavor);
+ $('tint').disabled=!$('colorIndividual').checked;
+ $('coneMode').textContent=$('coneIndividual').checked?'「'+coneNames[chosen.cone]+'」の個別設定を編集中':'共通設定を編集中（全コーンに適用）';
+ $('colorMode').textContent=$('colorIndividual').checked?'「'+flavors[chosen.flavor]+'」の個別設定を編集中':'共通設定を編集中（全味に適用）／色相は味ごと';
 }
 for(const k of ['cone','shape','flavor'])$(k).addEventListener('change',()=>{chosen[k]=Number($(k).value);sync();render();});
-$('blend').addEventListener('change',()=>{data.colors[chosen.flavor].blend=$('blend').value;render();});
-$('tint').addEventListener('input',()=>{data.colors[chosen.flavor].tint=$('tint').value;render();});
+$('coneIndividual').addEventListener('change',()=>{
+ if($('coneIndividual').checked)data.coneOverrides[chosen.cone]={...data.commonCone};
+ else delete data.coneOverrides[chosen.cone];
+ sync();render();
+});
+$('colorIndividual').addEventListener('change',()=>{
+ if($('colorIndividual').checked)data.colorOverrides[chosen.flavor]={...data.commonColor,tint:flavorColor[chosen.flavor]};
+ else delete data.colorOverrides[chosen.flavor];
+ sync();render();
+});
+$('blend').addEventListener('change',()=>{colorSettings().blend=$('blend').value;render();});
+$('tint').addEventListener('input',()=>{
+ if(!data.colorOverrides[chosen.flavor])return;
+ colorSettings().tint=$('tint').value;render();
+});
 $('bg').addEventListener('change',()=>{
  const colors={cream:'linear-gradient(#fffbed,#f7dfb3)',white:'#fff',dark:'#4a454f'};
  document.querySelector('.stage').style.background=colors[$('bg').value];
@@ -154,16 +180,16 @@ $('bg').addEventListener('change',()=>{
 function esc(x){return String(x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function imageTag(name,p){return '<image href="'+esc(name)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="none"/>';}
 function cp(){
- const p=coneBase[chosen.cone],v=data.cones[chosen.cone];
+ const p=coneBase[chosen.cone],v=coneSettings();
  const w=p.w*v.cw/100,h=p.h*v.ch/100;
  return {x:p.x+(p.w-w)/2+v.cx,y:p.y+(p.h-h)/2+v.cy,w,h};
 }
 function ip(){
- const p=iceBase[chosen.shape],v=data.cones[chosen.cone];
+ const p=iceBase[chosen.shape],v=coneSettings();
  const iw=chosen.cone===5?p.w-8:p.w,ih=chosen.cone===5?p.h-12:p.h;
  const bx=chosen.cone===5?p.x+4:p.x;
  const w=iw*v.iw/100,h=ih*v.ih/100;
- return {x:bx+(iw-w)/2+v.ix,y:p.y+(p.h-ih)/2+v.iy,w,h};
+ return {x:bx+(iw-w)/2+v.ix,y:p.y+(p.h-ih)/2+v.iy+(chosen.cone===5?45:0),w,h};
 }
 function coneName(){
  return chosen.cone===5?'cone-waffle-cup-raster.png':'cone-raster-'+chosen.cone+'.png';
@@ -177,7 +203,7 @@ async function checkLayers(i){
  ready.set(i,ok.every(Boolean));render();
 }
 function render(){
- const c=cp(),p=ip(),fl=data.colors[chosen.flavor],name=coneName(),base=name.replace(/\.png$/,'');
+ const c=cp(),p=ip(),fl=colorSettings(),name=coneName(),base=name.replace(/\.png$/,'');
  const layers=ready.get(chosen.cone);
  $('back').innerHTML=imageTag(layers?base+'-back.png':name,c);
  $('front').innerHTML=layers?imageTag(base+'-front.png',c):'';
@@ -187,12 +213,14 @@ function render(){
  else{
   // This is the same image-alpha-mask + mix-blend-mode approach as the game.
   const maskId='iceTintMask';
-  const s='saturate('+(fl.saturation/100)+') contrast('+(fl.contrast/100)+') brightness('+(fl.brightness/100)+')';
-  $('ice').innerHTML='<defs><mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
-  '<g style="isolation:isolate;filter:'+s+'">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(fl.blend)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+fl.tint+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
+  const contrast=fl.contrast/100, brightness=fl.brightness/100, slope=contrast*brightness, intercept=.5*(1-contrast)*brightness;
+  const filter='<filter id="iceColorCorrection" filterUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" color-interpolation-filters="sRGB"><feColorMatrix type="saturate" values="'+(fl.saturation/100)+'"/><feComponentTransfer><feFuncR type="linear" slope="'+slope+'" intercept="'+intercept+'"/><feFuncG type="linear" slope="'+slope+'" intercept="'+intercept+'"/><feFuncB type="linear" slope="'+slope+'" intercept="'+intercept+'"/></feComponentTransfer></filter>';
+  const mode=fl.blend==='auto'?[2,3,4].includes(chosen.flavor)?'multiply':'color':fl.blend;
+  $('ice').innerHTML='<defs>'+filter+'<mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
+  '<g filter="url(#iceColorCorrection)" style="isolation:isolate">'+art+'<g mask="url(#'+maskId+')" style="mix-blend-mode:'+esc(mode)+'"><rect x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" fill="'+selectedTint()+'" opacity="'+(fl.opacity/100)+'"/></g></g>';
  }
  $('stand').innerHTML=chosen.cone===5?'':'<image href="stand.png" x="56" y="264" width="138" height="137" preserveAspectRatio="none"/>';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:1,coneSettings:Object.fromEntries(coneNames.map((n,i)=>[n,data.cones[i]])),flavorSettings:Object.fromEntries(flavors.map((n,i)=>[n,data.colors[i]]))},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:1,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v]))},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
@@ -200,8 +228,8 @@ $('copy').onclick=async()=>{
  catch(e){$('export').focus();$('export').select();$('status').textContent='コピーできない場合は、選択した設定データを手動でコピーしてね。';}
 };
 $('resetSelected').onclick=()=>{
- const original=defaults();data.cones[chosen.cone]=original.cones[chosen.cone];
- data.colors[chosen.flavor]=original.colors[chosen.flavor];sync();render();
+ delete data.coneOverrides[chosen.cone];delete data.colorOverrides[chosen.flavor];
+ sync();render();
 };
 $('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();render();};
 for(let i=0;i<6;i++)checkLayers(i);
