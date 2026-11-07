@@ -273,11 +273,13 @@ function prepareSprinkleEdges(files,onReady){
     const rgba=cx.getImageData(0,0,w,h).data;
     const alpha=(x,y)=>rgba[(y*w+x)*4+3];
     const pts=[];
-    // Samples are restricted to the upper/middle swirl, before the cone lip.
-    // Vary heights per shape to avoid unnaturally aligned grains.
-    for(let i=0;i<16;i++){
+    // Test: 32 edge grains (twice the previous 16), concentrated higher
+    // on the swirl. Two opposing edge samples per height band.
+    // Preserve the existing flat colors until the material finish is approved.
+    for(let i=0;i<32;i++){
      const side=i%2===0?-1:1;
-     const y=Math.round(h*(.21+(i*.071)%0.55));
+     const band=Math.floor(i/2);
+     const y=Math.round(h*(.12+.56*Math.pow(band/15,1.65)+(i%2)*.008));
      if(y<0||y>=h)continue;
      let boundary=-1;
      if(side<0){
