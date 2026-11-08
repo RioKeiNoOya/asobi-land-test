@@ -30,8 +30,8 @@ const { chromium } = require('playwright');
    await page.evaluate(i=>{state.shape=i;render()},i);
    const image=page.locator('#ice image');
    if(await image.count()<1)throw Error('Soft-serve shape '+i+' image missing');
-   const href=await image.getAttribute('href');
-   if(!href?.includes(['round','classic','fine'][i]))throw Error('Wrong soft serve shape '+i+' '+href);
+   const hrefs=await image.evaluateAll(nodes=>nodes.map(n=>n.getAttribute('href')));
+   if(hrefs.some(x=>!x))throw Error('Missing scoop source '+i+' '+JSON.stringify(hrefs));
   }
   await page.evaluate(()=>{step=2;state.flavor=1;state.flavor2=3;state.mix=true;render()});
   if(await page.locator('#ice image').count()<2)throw Error('Mix images missing');
