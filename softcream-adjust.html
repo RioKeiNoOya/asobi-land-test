@@ -425,9 +425,13 @@ function drawToppings(p,ext,iceArt){
   const t=data.toppings.sauce;
   if(t.kind==='none')return '';
   const r=adjustedToppingBounds(p,t,false);
-  const graphic=t.style==='original'&&t.kind!=='pink'?imageTag(sauceFiles[t.kind],{...r}):
+  const master=imageTag('sauce-shell-neutral.svg',r);
+   const shellMask='<defs><mask id="neutralShellMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" style="mask-type:alpha">'+master+'</mask></defs>';
+   const graphic=t.style==='shell'&&t.kind!=='strawberry'?
+    (shellMask+master+'<g mask="url(#neutralShellMask)" style="mix-blend-mode:multiply"><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" fill="'+sauceColors[t.kind][0]+'" opacity=".97"/></g>'):
+    (t.style==='original'||t.style==='shell')&&t.kind!=='pink'?imageTag(sauceFiles[t.kind],{...r}):
     '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
-  // Reuse the original cream texture as an optional low-opacity shading layer.
+   // Reuse the original cream texture as an optional low-opacity shading layer.
   // Clip that shading to both the sauce alpha and the scoop silhouette.
   const shadeOpacity=Math.max(0,Math.min(100,t.shadeOpacity||0))/100;
   let shading='';
