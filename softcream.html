@@ -32,6 +32,18 @@ img,svg{ -webkit-user-drag:none;user-drag:none; }
 #toppingLayerControls button{border-radius:18px;padding:6px 10px;background:#f0dbc4;font-size:13px}
 #toppingLayerControls button.active{background:#f39b63;color:#fff}
 @media(max-width:550px){#toppingLayerControls{left:6px;bottom:79px}#toppingLayerControls button{padding:5px 8px}}
+
+/* Stable preview stage: controls never participate in centering the scoop. */
+.preview{position:relative;isolation:isolate}
+.preview>svg{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;max-height:none!important;display:block;transform:none!important}
+.decors-layer{position:absolute;inset:0}
+#toppingPalette,#toppingLayerControls{position:absolute!important;right:auto!important;box-sizing:border-box;transform:none!important}
+#toppingPalette{left:8px!important;bottom:38px!important;max-width:min(210px,calc(100% - 16px))!important}
+#toppingLayerControls{left:8px!important;bottom:87px!important}
+@media(max-width:550px){
+ #toppingPalette{left:6px!important;bottom:38px!important}
+ #toppingLayerControls{left:6px!important;bottom:80px!important}
+}
 </style>
 <header><a href="./index.html" style="color:#633d2a;text-decoration:none;font-weight:bold">← あそびランド</a><h1>🍦 ちいさなソフトクリームやさん</h1><button class="secondary" onclick="reset()">はじめから</button></header>
 <main class="layout"><section class="preview" id="preview"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 430" aria-label="ソフトクリームのプレビュー">
@@ -51,7 +63,7 @@ let activeToppingId=null;
 const toppingArtKinds=['biscuit','strawberry-cut','strawberry-whole','heart','macaron','mint','birch','blueberry','raspberry'];
 const toppingKindNames=['ビスケット','いちごの だんめん','いちご','ハートチョコ','マカロン','ミント','しらかばチョコ','ブルーベリー','ラズベリー'];
 const colorToppingKinds=new Set(['heart','macaron']);
-const insertableToppingKinds=new Set(['biscuit','birch','mint']);
+const insertableToppingKinds=new Set(['biscuit','birch']);
 const insertableExistingNames=new Set(['ウェハース','チョコスティック']);
 function initialToppingLayer(kind,label){
  return insertableToppingKinds.has(kind)||insertableExistingNames.has(label)?'back':'front';
