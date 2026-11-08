@@ -81,8 +81,33 @@ function toppingSvg(kind,index=0){
  '</defs><ellipse cx="66" cy="110" rx="33" ry="6" fill="#4a3321" opacity=".16"/>'+object+'</svg>';
  return 'data:image/svg+xml;charset=UTF-8,'+encodeURIComponent(svg);
 }
+// Prefer photoreal PNGs once they are uploaded to the site; preserve the
+// lightweight SVG as a fallback so existing players never see broken images.
+const photoToppingReady=new Set();
+const photoToppingKinds=['biscuit','strawberry-whole','mint','birch','blueberry','raspberry'];
+function photoToppingPath(kind,color=0){
+ return 'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+'.png';
+}
 function toppingArt(kind,color=0){
+ const photo=photoToppingPath(kind,color);
+ if(photoToppingReady.has(photo))return photo;
  const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));
+}
+function probePhotoToppings(){
+ const files=photoToppingKinds.map(k=>photoToppingPath(k)).concat(
+  ['heart','macaron'].flatMap(k=>Array.from({length:6},(_,i)=>photoToppingPath(k,i))));
+ files.forEach(file=>{
+  const img=new Image();
+  img.onload=()=>{
+   photoToppingReady.add(file);
+   for(const d of decors){
+    if(d.kind&&photoToppingPath(d.kind,d.color||0)===file)d.src=file;
+   }
+   render();
+  };
+  img.onerror=()=>{};
+  img.src=file;
+ });
 }
 function toppingPalette(){
  const box=document.getElementById('toppingPalette');
@@ -465,6 +490,7 @@ document.getElementById('upload').onchange=async e=>{let fs=[...e.target.files];
 async function save(){let sig=JSON.stringify({state,decors});if(sig===savedSignature){document.getElementById('toast').textContent='おなじ しゃしんは ほぞんずみ！';return}let svg=document.querySelector('.preview svg').cloneNode(true);for(let el of svg.querySelectorAll('image')){let href=el.getAttribute('href');if(href&&!href.startsWith('data:')){try{let response=await fetch(href);let b=await response.blob();let data=await new Promise((resolve,reject)=>{let reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(b)});el.setAttribute('href',data)}catch{}}}let blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'});let url=URL.createObjectURL(blob),img=new Image();img.onload=async()=>{let c=document.createElement('canvas');c.width=700;c.height=1200;let ctx=c.getContext('2d');ctx.fillStyle='#fff7e7';ctx.fillRect(0,0,700,1200);ctx.drawImage(img,0,0,700,1200);let p=document.getElementById('preview').getBoundingClientRect();for(let d of decors){let x=d.x/100*700,y=d.y/100*1200;if(d.src){let im=new Image();im.src=d.src;try{await im.decode();ctx.drawImage(im,x,y,100,100)}catch{}}else{ctx.font='75px serif';ctx.fillText(d.emoji,x,y+75)}}c.toBlob(async b=>{let file=new File([b],'softcream.jpg',{type:'image/jpeg'});try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});document.getElementById('toast').textContent='しゃしんを ほぞんしてね'}else{let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='softcream.jpg';a.click();document.getElementById('toast').textContent='しゃしんを ダウンロードしたよ'}savedSignature=sig;beep(900)}catch{document.getElementById('toast').textContent='ほぞんを やめたよ'}},'image/jpeg',.85);URL.revokeObjectURL(url)};img.src=url}
 render();
 probeToppings();
+probePhotoToppings();
 probeConeLayers();
 prepareCreamExtensions(render);
 prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
