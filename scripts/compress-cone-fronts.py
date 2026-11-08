@@ -16,3 +16,15 @@ for name in names:
             assert result.size == rgba.size
             assert result.mode == "RGBA"
         print(f"{source}: {source.stat().st_size:,} -> {target}: {target.stat().st_size:,}")
+
+# Extra high-resolution decoration assets shared by the release build.
+for name in ('sprinkles-rainbow.png', 'topping-mint.png'):
+    source=Path(name)
+    with Image.open(source) as image:
+        rgba=image.convert('RGBA')
+        dest=source.with_suffix('.webp')
+        rgba.save(dest,'WEBP',quality=90,method=6,exact=True)
+        with Image.open(dest) as check:
+            check.load()
+            assert check.size==rgba.size and check.mode=='RGBA'
+        print(f'{source}: {source.stat().st_size:,} -> {dest}: {dest.stat().st_size:,}')
