@@ -46,7 +46,7 @@ const flavors=[['バニラ','🌼','#fff0d2'],['いちご','🍓','#f5a0bc'],['�
 const sauces=[['なし','🚫'],['チョコ','🍫'],['いちご','🍓'],['ホワイト','🥛'],['カラースプレー','🌈'],['ピンクチョコ','🩷']];
 const decorations=[['ビスケット','🍪'],['いちごの だんめん','🍓'],['いちご','🍓'],['ハートチョコ','💗'],['マカロン','🍬'],['ミント','🌿'],['しらかばチョコ','🍫'],['ブルーベリー','🫐'],['ラズベリー','🍇'],['さくらんぼ','🍒'],['バナナ','🍌'],['ウェハース','🧇']];
 
-const toppingColors=[['あか','#e85053'],['ピンク','#f6a2c7'],['きいろ','#efce48'],['きみどり','#a9d77a'],['みずいろ','#86d7e9'],['むらさき','#b19ce0']];
+const toppingColors=[['あか','#e85053'],['ピンク','#f6a2c7'],['きいろ','#efce48'],['きみどり','#a9d77a'],['みずいろ','#86d7e9'],['むらさき','#b19ce0'],['チョコ','#77422e']];
 let activeToppingId=null;
 const toppingArtKinds=['biscuit','strawberry-cut','strawberry-whole','heart','macaron','mint','birch','blueberry','raspberry'];
 const toppingKindNames=['ビスケット','いちごの だんめん','いちご','ハートチョコ','マカロン','ミント','しらかばチョコ','ブルーベリー','ラズベリー'];
@@ -77,7 +77,7 @@ function colorVariant(hex,factor){
  return '#'+v.map(n=>n.toString(16).padStart(2,'0')).join('');
 }
 function toppingSvg(kind,index=0){
- const base=toppingColors[index%6][1],bright=colorVariant(base,.38),shadow=colorVariant(base,-.38);
+ const base=toppingColors[index%toppingColors.length][1],bright=colorVariant(base,.38),shadow=colorVariant(base,-.38);
  let object='';
  if(kind==='biscuit'){
  object='<g transform="rotate(-12 60 60)"><rect x="22" y="24" width="77" height="75" rx="11" fill="#a56d37" stroke="#865329" stroke-width="4"/><rect x="25" y="20" width="72" height="73" rx="10" fill="url(#cookie)" stroke="#d5a76b" stroke-width="3"/>'+
@@ -124,7 +124,7 @@ function toppingArt(kind,color=0){
 }
 function probePhotoToppings(){
  const files=photoToppingKinds.map(k=>photoToppingPath(k)).concat(
-  ['heart','macaron'].flatMap(k=>Array.from({length:6},(_,i)=>photoToppingPath(k,i))));
+  ['heart','macaron'].flatMap(k=>Array.from({length:k==='heart'?7:6},(_,i)=>photoToppingPath(k,i))));
  files.forEach(file=>{
   const img=new Image();
   img.onload=()=>{
@@ -144,11 +144,11 @@ function toppingPalette(){
  toppingLayerControls(d);
  if(step!==4||!d||!colorToppingKinds.has(d.kind)){box.style.display='none';box.innerHTML='';return;}
  box.style.display='flex';
- box.innerHTML=toppingColors.map((c,i)=>'<button type="button" aria-label="'+c[0]+'" title="'+c[0]+'" class="topping-dot '+(d.color===i?'active':'')+'" style="--tone:'+c[1]+'" onclick="changeToppingColor('+i+')"></button>').join('');
+ box.innerHTML=toppingColors.slice(0,d.kind==='heart'?7:6).map((c,i)=>'<button type="button" aria-label="'+c[0]+'" title="'+c[0]+'" class="topping-dot '+(d.color===i?'active':'')+'" style="--tone:'+c[1]+'" onclick="changeToppingColor('+i+')"></button>').join('');
 }
 function changeToppingColor(i){
  const d=decors.find(item=>item.id===activeToppingId);
- if(!d||!colorToppingKinds.has(d.kind))return;
+ if(!d||!colorToppingKinds.has(d.kind)||i<0||i>=(d.kind==='heart'?7:6))return;
  d.color=i;d.src=toppingArt(d.kind,i);beep(550);render();
 }
 
