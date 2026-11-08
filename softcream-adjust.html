@@ -245,7 +245,7 @@ function sync(){
  $('coneMode').textContent=$('coneIndividual').checked?'「'+coneNames[chosen.cone]+'」の個別設定を編集中':'共通設定を編集中（全コーンに適用）';
  $('colorMode').textContent=$('colorIndividual').checked?'「'+flavors[chosen.flavor]+'」の個別設定を編集中':'共通設定を編集中（全味に適用）／色相は味ごと';
 }
-for(const k of ['cone','shape','flavor'])$(k).addEventListener('change',()=>{chosen[k]=Number($(k).value);sync();render();});
+for(const k of ['cone','shape','flavor'])$(k).addEventListener('change',()=>{chosen[k]=Number($(k).value);sync();syncCrop();render();});
 $('coneIndividual').addEventListener('change',()=>{
  if($('coneIndividual').checked)data.coneOverrides[chosen.cone]={...data.commonCone};
  else delete data.coneOverrides[chosen.cone];
