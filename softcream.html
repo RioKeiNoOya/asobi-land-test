@@ -448,14 +448,13 @@ function sauceSvg(){
  if(!colors)return '';
  const p=toppingBounds();
  const w=p.w*.98,h=p.h*.72,x=p.x+(p.w-w)/2,y=p.y+11;
- const art='<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+
- '<defs><linearGradient id="chocoFlowGrad" x1="0" y1="0" x2=".15" y2="1"><stop stop-color="'+colors.light+'"/><stop offset=".46" stop-color="'+colors.base+'"/><stop offset="1" stop-color="'+colors.dark+'"/></linearGradient></defs>'+
- '<path d="'+flowSaucePath+'" fill="url(#chocoFlowGrad)"/>'+
- '<g fill="none" stroke="'+colors.light+'" stroke-width="4" opacity=".5" stroke-linecap="round"><path d="M20 10Q35 32 28 64"/><path d="M116 9Q131 31 124 69"/><path d="M202 9Q219 39 203 64"/></g></svg>';
+ const neutral='<image href="sauce-shell-neutral.svg" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" preserveAspectRatio="none"/>';
+ const shellTint='<mask id="shellNeutralAlpha" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+neutral+'</mask>';
+ const art='<defs>'+shellTint+'</defs><g>'+neutral+'<g mask="url(#shellNeutralAlpha)" style="mix-blend-mode:multiply"><rect x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" fill="'+colors.base+'" opacity=".97"/></g></g>';
  // Local silhouette and sauce masks, with a low-opacity soft-serve texture
  // laid on top to keep original folds visible without heavy Gaussian blur.
  const maskShape='<mask id="chocoShapeMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" style="mask-type:alpha"><image href="'+creamSource(state.shape)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" preserveAspectRatio="none"/></mask>';
- const shadeShape='<svg x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" viewBox="0 0 250 230" preserveAspectRatio="none"><path d="'+flowSaucePath+'" fill="white"/></svg>';
+ const shadeShape=neutral;
  const maskSauce='<mask id="chocoSauceOnly" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+x+'" y="'+y+'" width="'+w+'" height="'+h+'" style="mask-type:alpha">'+shadeShape+'</mask>';
  const shade='<g mask="url(#chocoSauceOnly)" opacity=".20" style="mix-blend-mode:soft-light"><image href="'+creamSource(state.shape)+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+creamImageGeometry(p,state.shape).h+'" preserveAspectRatio="none"/></g>';
  return '<defs>'+maskShape+maskSauce+'</defs><g mask="url(#chocoShapeMask)">'+art+shade+'</g>';
