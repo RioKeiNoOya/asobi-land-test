@@ -142,6 +142,7 @@ function photoToppingPath(kind,color=0){
  return 'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+(kind==='heart'&&color===6?'.svg':'.png');
 }
 function toppingArt(kind,color=0){
+ if(kind==='heart'){const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));}
  const photo=photoToppingPath(kind,color);
  if(photoToppingReady.has(photo))return photo;
  const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));
@@ -376,8 +377,8 @@ function icePicture(n,shape=state.shape,thumbnail=false){
  return '<defs>'+filter+'<mask id="'+maskId+'" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" style="mask-type:alpha">'+art+'</mask></defs>'+
  '<g filter="url(#'+id+')" style="isolation:isolate">'+art+tint+'</g>';
 }
-function oneScoop(n,shape=state.shape){
- return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape);
+function oneScoop(n,shape=state.shape,thumbnail=false){
+ return '<defs>'+flavorFilter(n)+'</defs>'+icePicture(n,shape,thumbnail);
 }
 // A winding edge follows the folds of the soft serve rather than a straight
 // vertical split. Both halves use the *same* artwork, so their ridges align.
