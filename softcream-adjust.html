@@ -36,7 +36,7 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 <label class="field">陰影の合成方法<select id="sauceShadeBlend"><option value="multiply">乗算（陰影が濃い）</option><option value="soft-light">ソフトライト（自然）</option><option value="overlay">オーバーレイ（くっきり）</option><option value="normal">通常（元画像を薄く重ねる）</option></select></label>
 <label class="field">陰影処理<select id="sauceShadeSource"><option value="gray">モノクロ陰影</option><option value="original">元のクリーム画像</option></select></label>
 </div><div class="sliders" id="shadeSliders"></div>
-<p class="note">濃さ0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
+<p class="note">濃さ0〜100％で調整できます。0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
 </div>
 <p class="note">チョコ・ホワイトチョコ・ピンクチョコは「全面にかけるソース（四角ベース）」がおすすめです。ピンクの現行PNGは未制作なので、選択した場合はSVG試作を表示します。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
@@ -196,7 +196,7 @@ function toppingControls(group){
 }
 toppingControls('sauce');toppingControls('sprinkle');
 const shadeDefs=[
- ['shadeOpacity','陰影の濃さ',0,70,1,'%'],
+ ['shadeOpacity','陰影の濃さ',0,100,1,'%'],
  ['shadeBlur','ぼかし',0,6,.5,'px']
 ];
 $('shadeSliders').innerHTML=shadeDefs.map(([key,label,min,max,step])=>'<div class="slide"><label for="'+key+'">'+label+' <output id="o_'+key+'"></output></label><input id="'+key+'" type="range" min="'+min+'" max="'+max+'" step="'+step+'"></div>').join('');
@@ -422,7 +422,7 @@ function drawToppings(p,ext,iceArt){
     '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
   // Reuse the original cream texture as an optional low-opacity shading layer.
   // Clip that shading to both the sauce alpha and the scoop silhouette.
-  const shadeOpacity=Math.max(0,Math.min(70,t.shadeOpacity||0))/100;
+  const shadeOpacity=Math.max(0,Math.min(100,t.shadeOpacity||0))/100;
   let shading='';
   if(shadeOpacity>0){
     const shadeMask='<mask id="sauceShadeMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" style="mask-type:alpha">'+graphic+'</mask>';
