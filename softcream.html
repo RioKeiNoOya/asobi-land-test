@@ -189,7 +189,7 @@ const coneGeometry=[
  {x:34,y:174,w:182,h:171,lip:234}
 ];
 // WebP assets are optional. Keep the original PNGs as a zero-risk fallback.
-const compressedWebP=new Set(['soft-round.png','soft-classic.png','soft-fine.png',...Array.from({length:5},(_,i)=>'cone-raster-'+i+'.png'),...Array.from({length:5},(_,i)=>'cone-raster-'+i+'-back.png'),'cone-waffle-cup-raster.png','cone-waffle-cup-raster-back.png']);
+const compressedWebP=new Set(['soft-round.png','soft-classic.png','soft-fine.png',...Array.from({length:5},(_,i)=>'cone-raster-'+i+'.png'),...Array.from({length:5},(_,i)=>'cone-raster-'+i+'-back.png'),...Array.from({length:5},(_,i)=>'cone-raster-'+i+'-front.png'),'cone-waffle-cup-raster.png','cone-waffle-cup-raster-back.png','cone-waffle-cup-raster-front.png']);
 function compressedAsset(file){return compressedWebP.has(file)?file.replace(/\.png$/,'.webp'):file;}
 function coneAsset(i=state.cone){
  return i===5?'cone-waffle-cup-raster.png':'cone-raster-'+Math.min(i,4)+'.png';
