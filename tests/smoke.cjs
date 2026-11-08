@@ -41,6 +41,18 @@ const { chromium } = require('playwright');
   await page.evaluate(()=>{step=4;choose(3);step=0;render()});
   if(await page.locator('#toppingLayerControls').evaluate(e=>getComputedStyle(e).display)==='none')throw Error('Selected topping controls hidden outside topping page');
   if(await page.locator('.decors-layer .decor.active').count()!==1)throw Error('Selected topping outline missing');
+  await page.evaluate(()=>{step=4;choose(6);step=0;render()});
+  const backTarget=page.locator('#decorLayer .decor-hit').last();
+  const before=await page.evaluate(()=>({rx:decors[decors.length-1].rx,ry:decors[decors.length-1].ry}));
+  const target=await backTarget.boundingBox();
+  if(!target)throw Error('Behind-ice topping lacks touch target');
+  await page.mouse.move(target.x+target.width/2,target.y+target.height/2);
+  await page.mouse.down();
+  await page.mouse.move(target.x+target.width/2+15,target.y+target.height/2-12,{steps:4});
+  await page.mouse.up();
+  const after=await page.evaluate(()=>({rx:decors[decors.length-1].rx,ry:decors[decors.length-1].ry}));
+  if(Math.abs(after.rx-before.rx)+Math.abs(after.ry-before.ry)<.01)throw Error('Behind-ice topping did not move');
+
   await page.goto(origin+'softcream-adjust.html',{waitUntil:'load'});
   if(await page.locator('#backCrop').count()!==1)throw Error('Back crop control missing');
   await page.locator('#backCrop').fill('62');
