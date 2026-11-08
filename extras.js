@@ -112,7 +112,30 @@ function kanaRefresh(){
  document.querySelectorAll('#kanaGrid button:disabled,#kanaSmall:disabled,#kanaLong:disabled').forEach(b=>b.setAttribute('aria-disabled','true'));
  document.querySelectorAll('#kanaGrid button:not(:disabled),#kanaSmall:not(:disabled),#kanaLong:not(:disabled)').forEach(b=>b.removeAttribute('aria-disabled'));
 }
-function kanaAdd(s){if(kanaRecording)return;const remaining=20-Array.from(kanaString()).length;if(remaining<=0)return;const part=Array.from(s).slice(0,remaining).join('');if(!part)return;kanaUnits.push(toHira(part));kanaRefresh();say(kanaValue(part))}
+// Many iOS speech voices pronounce isolated small-ya/yu/yo kana as two
+// separate syllables. Speak a familiar example word when a compound key is
+// pressed; keep the actual letters on the board unchanged.
+const kanaCompoundExamples={
+ 'きゃ':'きゃべつ','きゅ':'きゅうり','きょ':'きょうりゅう',
+ 'しゃ':'しゃしん','しゅ':'しゅくだい','しょ':'しょくぱん',
+ 'ちゃ':'おちゃ','ちゅ':'ちゅうりっぷ','ちょ':'ちょうちょ',
+ 'にゃ':'にゃんこ','にゅ':'にゅうがく','にょ':'にょきにょき',
+ 'ひゃ':'ひゃく','ひゅ':'ひゅうひゅう','ひょ':'ひょう',
+ 'みゃ':'みゃく','みゅ':'みゅーじっく','みょ':'みょうじ',
+ 'りゃ':'りゃく','りゅ':'りゅう','りょ':'りょこう',
+ 'ぎゃ':'ぎゃく','ぎゅ':'ぎゅうにゅう','ぎょ':'ぎょかい',
+ 'じゃ':'じゃがいも','じゅ':'じゅーす','じょ':'じょうろ',
+ 'びゃ':'びゃくや','びゅ':'びゅうびゅう','びょ':'びょういん',
+ 'ぴゃ':'ぴゃー','ぴゅ':'ぴゅー','ぴょ':'ぴょんぴょん',
+ 'ぢゃ':'ぢゃ','ぢゅ':'ぢゅ','ぢょ':'ぢょ'
+};
+function kanaSayUnit(s){
+ const unit=toHira(s);
+ // Use word context instead of asking the TTS engine to guess a lone syllable.
+ const sample=kanaCompoundExamples[unit];
+ say(sample?kanaValue(sample):kanaValue(s));
+}
+function kanaAdd(s){if(kanaRecording)return;const remaining=20-Array.from(kanaString()).length;if(remaining<=0)return;const part=Array.from(s).slice(0,remaining).join('');if(!part)return;kanaUnits.push(toHira(part));kanaRefresh();kanaSayUnit(part)}
 function renderKana(){const root=$('kanaGrid');root.replaceChildren();const values=kanaTab==='basic'?basicRows.join('').split(''):kanaTab==='voiced'?voicedRows.map(r=>r.padEnd(10,'　')).join('').split(''):combos;values.forEach(ch=>{const b=document.createElement('button');if(ch==='　'){b.disabled=true;b.dataset.empty='true';b.textContent='';}else{b.textContent=kanaValue(ch);if(ch==='っ'||ch==='ー'||ch==='゛'||ch==='゜')b.classList.add('kana-special');if(ch==='゛'||ch==='゜'){b.classList.add('kana-mark');b.onclick=()=>kanaMark(ch)}else b.onclick=()=>kanaAdd(ch)}root.append(b)});document.querySelectorAll('[data-kana-tab]').forEach(b=>b.classList.toggle('chosen',b.dataset.kanaTab===kanaTab));kanaRefresh()}
 document.querySelectorAll('[data-kana-tab]').forEach(b=>b.onclick=()=>{kanaTab=b.dataset.kanaTab;renderKana()});
 
@@ -126,7 +149,7 @@ function kanaReadingText(s){
  // A pause after ふな is preferable to mistakenly saying ふなわし.
  return s.replace(/ふなはし/g,'ふな、はし').replace(/フナハシ/g,'フナ、ハシ');
 }
-$('kanaPlay').onclick=()=>{const str=kanaString();if(str)say(kanaReadingText(str))};
+$('kanaPlay').onclick=()=>{const str=kanaString();if(str){const example=kanaCompoundExamples[toHira(str)];say(example?kanaValue(example):kanaReadingText(str))}};
 $('kanaSound').onclick=()=>{speakEnabled=!speakEnabled;if(!speakEnabled)speechSynthesis?.cancel();kanaRefresh()};
 const kanaSpeechCommon={
  '今日は':'こんにちは','今日':'きょう','明日':'あした','昨日':'きのう',
