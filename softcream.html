@@ -558,7 +558,17 @@ function fitPhonePreview(){
  const portrait=window.matchMedia('(max-width:700px) and (orientation:portrait)').matches;
  svgs.forEach(svg=>svg.setAttribute('viewBox',portrait?'0 34 250 370':'0 0 250 430'));
 }
-window.addEventListener('resize',fitPhonePreview,{passive:true});
+window.addEventListener('resize',()=>{
+ fitPhonePreview();
+ requestAnimationFrame(()=>{
+  for(const d of decors){
+   const el=document.querySelector('.decors-layer [data-decor-id="'+d.id+'"]');
+   if(!el)continue;
+   const pos=decorStagePoint(d);
+   el.style.left=pos.x+'px';el.style.top=pos.y+'px';
+  }
+ });
+},{passive:true});
 
 /* Store topping positions relative to the current ice artwork, rather than
    to the screen or cone. This keeps toppings attached when BIG/cup/shape moves. */
