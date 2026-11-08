@@ -204,6 +204,28 @@ const coneGeometry=[
  {x:37,y:191,w:176,h:200,lip:222},
  {x:34,y:174,w:182,h:171,lip:234}
 ];
+// WebP assets are optional. Keep the original PNGs as a zero-risk fallback.
+const compressedAssetReady=new Set();
+function compressedAsset(file){return compressedAssetReady.has(file)?file.replace(/\.png$/,'.webp'):file;}
+function probeCompressedAssets(){
+ const cones=Array.from({length:5},(_,i)=>'cone-raster-'+i+'.png').concat('cone-waffle-cup-raster.png');
+ const variants=cones.flatMap(name=>[name,name.replace(/\.png$/,'-back.png'),name.replace(/\.png$/,'-front.png')]);
+ const files=['soft-round.png','soft-classic.png','soft-fine.png',...variants];
+ files.forEach(file=>{
+  const image=new Image();
+  image.onload=()=>{
+   compressedAssetReady.add(file);
+   if(iceFiles.includes(file)){
+    const shape=iceFiles.indexOf(file);
+    delete extendedCreamSources[shape];
+    prepareCreamExtensionOne(file,shape,render);
+   }
+   render();
+  };
+  image.onerror=()=>{};
+  image.src=file.replace(/\.png$/,'.webp');
+ });
+}
 function coneAsset(i=state.cone){
  return i===5?'cone-waffle-cup-raster.png':'cone-raster-'+Math.min(i,4)+'.png';
 }
@@ -216,7 +238,8 @@ function coneSvg(i=state.cone,foreground=false){
  const p0=coneGeometry[i],v=approvedConeSettings(i), src=coneAsset(i);
  const w=p0.w*v.cw/100,h=p0.h*v.ch/100;
  const p={x:p0.x+(p0.w-w)/2+v.cx,y:p0.y+(p0.h-h)/2+v.cy,w,h,lip:p0.lip};
- const path=coneLayerReady[i] ? src.replace(/\.png$/,foreground?'-front.png':'-back.png') : src;
+ const selected=coneLayerReady[i] ? src.replace(/\.png$/,foreground?'-front.png':'-back.png') : src;
+ const path=compressedAsset(selected);
  const img='<image href="'+path+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+p.h+'" preserveAspectRatio="none"/>';
  if(coneLayerReady[i] || !foreground)return img;
  // Legacy fallback only, until front/back PNGs are uploaded to the test repo.
@@ -255,8 +278,7 @@ const iceFiles=['soft-round.png','soft-classic.png','soft-fine.png'];
    original swirl. Generated once per shape; never changes PNG files. */
 const extendedCreamSources={};
 const extendedCreamFactor={};
-function prepareCreamExtensions(onReady){
- iceFiles.forEach((file,shape)=>{
+function prepareCreamExtensionOne(file,shape,onReady){
   const im=new Image();
   im.onload=()=>{
    try{
@@ -312,10 +334,10 @@ function prepareCreamExtensions(onReady){
     onReady();
    }catch(error){console.warn('cream texture continuation unavailable',error);}
   };
-  im.src=file;
- });
+  im.src=compressedAsset(file);
 }
-function creamSource(shape){return extendedCreamSources[shape]||iceFiles[shape];}
+function prepareCreamExtensions(onReady){iceFiles.forEach((file,shape)=>prepareCreamExtensionOne(file,shape,onReady));}
+function creamSource(shape){return extendedCreamSources[shape]||compressedAsset(iceFiles[shape]);}
 function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
@@ -672,6 +694,7 @@ probeToppings();
 probePhotoToppings();
 probeConeLayers();
 prepareCreamExtensions(render);
+probeCompressedAssets();
 prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
 // Originals are used without recoloring for vanilla.  If an asset is missing,
 // use its vector fallback without interfering with the other two shapes.
