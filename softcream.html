@@ -143,9 +143,8 @@ function photoToppingPath(kind,color=0){
 }
 function toppingArt(kind,color=0){
  if(kind==='heart'){const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));}
- const photo=photoToppingPath(kind,color);
- if(photoToppingReady.has(photo))return photo;
- const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));
+ if(kind==='birch')return 'topping-birch-high.svg';
+ return photoToppingPath(kind,color);
 }
 function probePhotoToppings(){
  const files=photoToppingKinds.map(k=>photoToppingPath(k)).concat(
@@ -206,8 +205,8 @@ const coneGeometry=[
  {x:34,y:174,w:182,h:171,lip:234}
 ];
 // WebP assets are optional. Keep the original PNGs as a zero-risk fallback.
-const compressedAssetReady=new Set();
-function compressedAsset(file){return compressedAssetReady.has(file)?file.replace(/\.png$/,'.webp'):file;}
+const compressedWebP=new Set(['soft-round.png','soft-classic.png','soft-fine.png',...Array.from({length:5},(_,i)=>'cone-raster-'+i+'.png'),...Array.from({length:5},(_,i)=>'cone-raster-'+i+'-back.png'),'cone-waffle-cup-raster.png','cone-waffle-cup-raster-back.png']);
+function compressedAsset(file){return compressedWebP.has(file)?file.replace(/\.png$/,'.webp'):file;}
 function probeCompressedAssets(){
  const cones=Array.from({length:5},(_,i)=>'cone-raster-'+i+'.png').concat('cone-waffle-cup-raster.png');
  const variants=cones.flatMap(name=>[name,name.replace(/\.png$/,'-back.png'),name.replace(/\.png$/,'-front.png')]);
@@ -234,7 +233,7 @@ function coneAsset(i=state.cone){
 // entire cone; the foreground repeats ONLY the near-facing wall and rim.
 // This prevents the ice image from erasing the body of the cone.
 // Until both new assets exist, the old single-image rendering stays active.
-const coneLayerReady=Array(6).fill(false);
+const coneLayerReady=Array(6).fill(true);
 function coneSvg(i=state.cone,foreground=false){
  const p0=coneGeometry[i],v=approvedConeSettings(i), src=coneAsset(i);
  const w=p0.w*v.cw/100,h=p0.h*v.ch/100;
@@ -700,10 +699,9 @@ async function save(){
 }
 render();
 probeToppings();
-probePhotoToppings();
-probeConeLayers();
+// Fixed topping and cone assets are bundled; no existence probes.
 prepareCreamExtensions(render);
-probeCompressedAssets();
+// Use the explicitly bundled WebP paths without runtime probing.
 prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
 // Originals are used without recoloring for vanilla.  If an asset is missing,
 // use its vector fallback without interfering with the other two shapes.
