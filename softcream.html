@@ -304,7 +304,7 @@ function approvedIceBounds(shape=state.shape){
 }
 function icePicture(n,shape=state.shape,thumbnail=false){
  const p=approvedIceBounds(shape), ext=thumbnail?{...creamImageGeometry(p,shape),h:p.h}:creamImageGeometry(p,shape);
- const src=thumbnail?iceFiles[shape]:creamSource(shape);
+ const src=thumbnail?compressedAsset(iceFiles[shape]):creamSource(shape);
  const art='<image href="'+src+'" x="'+p.x+'" y="'+p.y+'" width="'+p.w+'" height="'+ext.h+'" preserveAspectRatio="none"/>';
  const fl=approvedFlavorSettings(n);
  const contrast=fl.contrast/100,brightness=fl.brightness/100;
@@ -645,5 +645,5 @@ probeToppings();
 // Fixed topping and cone assets are bundled; no existence probes.
 prepareCreamExtensions(render);
 // Use the explicitly bundled WebP paths without runtime probing.
-prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
+prepareSprinkleEdges(['soft-round.webp','soft-classic.webp','soft-fine.webp'],render);
 </script></html>
