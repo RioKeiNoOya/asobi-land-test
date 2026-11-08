@@ -59,6 +59,7 @@ const { chromium } = require('playwright');
   if(!await page.locator('#cropGuide path').count())throw Error('Crop guide not visible');
   await page.goto(origin+'kakigori.html',{waitUntil:'load'});
   await page.locator('#light').click();
+  await page.evaluate(()=>{chosen='blue';daub(210,190);if(!channels.some((v,i)=>i%6===2&&v>0))throw Error('RGB blue channel not painted');});
   if(!await page.locator('body.magic').count())throw Error('Magic gem mode unavailable');
   await page.locator('#paint').click();
   if(await page.locator('body.magic').count())throw Error('Shaved ice mode unavailable');
