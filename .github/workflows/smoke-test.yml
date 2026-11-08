@@ -1,8 +1,14 @@
 name: Check iPad and iPhone layout
 on:
+  workflow_dispatch:
   push:
     paths:
       - 'tests/smoke.cjs'
+      - 'softcream.html'
+      - 'softcream-adjust.html'
+      - 'katahame.html'
+      - 'sauce-shell-neutral.svg'
+      - 'topping-birch-high.svg'
       - '.github/workflows/smoke-test.yml'
 permissions:
   contents: read
