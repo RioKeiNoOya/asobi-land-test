@@ -13,13 +13,14 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 </style></head><body>
 <header><h1>🍦 ソフトクリーム調整室</h1><a href="softcream.html">ゲームへ戻る</a><span class="note">調整専用・ゲーム本体は変わりません</span></header>
 <main><div class="stage"><svg id="scene" xmlns="http://www.w3.org/2000/svg" viewBox="0 16 250 405" aria-label="ソフトクリーム配置プレビュー">
-<g id="back"></g><g id="ice"></g><g id="toppingSauce"></g><g id="toppingSprinkles"></g><g id="edgeSprinkles"></g><g id="front"></g><g id="stand"></g></svg></div>
+<g id="back"></g><g id="ice"></g><g id="toppingSauce"></g><g id="toppingSprinkles"></g><g id="edgeSprinkles"></g><g id="front"></g><g id="stand"></g><g id="cropGuide" pointer-events="none"></g></svg></div>
 <section class="settings">
 <div class="panel"><h2>表示する組み合わせ</h2>
 <div class="selectors"><label class="field">コーン<select id="cone"></select></label><label class="field">アイス形状<select id="shape"></select></label><label class="field">味<select id="flavor"></select></label><label class="field">背景<select id="bg"><option value="cream">クリーム色</option><option value="white">白</option><option value="dark">濃い色</option></select></label></div>
 <p class="note">通常は全種類に共通の設定です。個別調整をONにすると、そのコーン・味だけ別の値になります。</p></div>
 <div class="panel"><h2>コーンの大きさ・位置</h2><label><input type="checkbox" id="coneIndividual"> このコーンだけ個別調整する</label><p class="note" id="coneMode">共通設定を編集中</p><div class="sliders" id="coneSliders"></div>
 <p class="note">横幅を増やすとアイスに対して口が広くなります。BIGだけ別の倍率にできるよ。</p></div>
+<div class="panel"><h2>コーン背面PNGの切り抜き（軽量化）</h2><p class="note">赤い点線より下を元画像から実際に切り抜きます。各コーン別に指定できます。ゲームへの反映には切り抜いたPNGと設定値の適用が必要です。</p><div class="slide"><label for="backCrop">下部を切る位置 <output id="backCropLabel">100%</output></label><input id="backCrop" type="range" min="20" max="100" value="100" step="1"></div><div class="actions"><button id="downloadCroppedBack" type="button">このコーンの背面PNGを書き出す</button></div><p class="note" id="cropStatus">100%なら切り抜きなし</p></div>
 <div class="panel"><h2>アイスの大きさ・位置</h2><div class="sliders" id="iceSliders"></div>
 <p class="note">「アイス幅」と「アイス高さ」は形を伸ばす倍率。縦横の比率はなるべく揃えるのがおすすめ。カップだけは初期設定で低く入ります。</p></div>
 <div class="panel"><h2>色・陰影</h2><label><input type="checkbox" id="colorIndividual"> この味だけ個別調整する</label><p class="note" id="colorMode">共通設定を編集中</p>
@@ -128,7 +129,7 @@ function creamImageGeometry(p,shape){
  return {x:p.x,y:p.y,w:p.w,h:p.h*(extendedCreamFactor[shape]||1)};
 }
 
-const storeKey='asobiland-softcream-adjust-v9';
+const storeKey='asobiland-softcream-adjust-v10';
 const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":21},"commonColor":{"blend":"auto","tint":null,"opacity":100,"saturation":100,"contrast":100,"brightness":100},"coneOverrides":{"ビッグ":{"cw":126,"ch":133,"cx":0,"cy":-15,"iw":80,"ih":80,"ix":0,"iy":0},"ワッフルカップ":{"cw":88,"ch":112,"cx":0,"cy":0,"iw":80,"ih":80,"ix":0,"iy":31}},"flavorOverrides":{"いちご":{"blend":"auto","tint":"#ffb7b8","opacity":100,"saturation":100,"contrast":95,"brightness":100},"ラズベリー":{"blend":"auto","tint":"#f98db5","opacity":80,"saturation":90,"contrast":200,"brightness":80},"抹茶":{"blend":"auto","tint":"#8f9e61","opacity":90,"saturation":90,"contrast":200,"brightness":100},"チョコ":{"blend":"auto","tint":"#7f592d","opacity":80,"saturation":90,"contrast":200,"brightness":100},"ラムネ":{"blend":"auto","tint":"#85d8e5","opacity":100,"saturation":70,"contrast":95,"brightness":100},"みかん":{"blend":"auto","tint":"#ffc83f","opacity":100,"saturation":100,"contrast":100,"brightness":100},"ラベンダー":{"blend":"auto","tint":"#cbb0f0","opacity":100,"saturation":79,"contrast":100,"brightness":95},"レモン":{"blend":"auto","tint":"#f4e34f","opacity":100,"saturation":65,"contrast":80,"brightness":116}}};
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
@@ -143,9 +144,13 @@ const defaults=()=>({
 let data=defaults();
 try{
  const saved=JSON.parse(localStorage.getItem(storeKey));
- if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides&&saved.toppings){data=saved;data.toppings.sauce={...defaults().toppings.sauce,...saved.toppings.sauce};}
+ if(saved&&saved.commonCone&&saved.commonColor&&saved.coneOverrides&&saved.colorOverrides&&saved.toppings){data=saved;data.backCropPercent={...(saved.backCropPercent||{})};data.toppings.sauce={...defaults().toppings.sauce,...saved.toppings.sauce};}
 }catch(e){}
 function coneSettings(){return data.coneOverrides[chosen.cone]||data.commonCone;}
+function cropPercent(){return Math.max(20,Math.min(100,Number(data.backCropPercent[chosen.cone]??100)));}
+function syncCrop(){ $('backCrop').value=cropPercent();$('backCropLabel').textContent=cropPercent()+'%';$('cropStatus').textContent=cropPercent()===100?'100%なら切り抜きなし':'赤線より下を切り抜く設定：'+cropPercent()+'%';}
+$('backCrop').addEventListener('input',()=>{data.backCropPercent[chosen.cone]=Number($('backCrop').value);syncCrop();render();});
+$('downloadCroppedBack').addEventListener('click',async()=>{const index=chosen.cone,percent=cropPercent();const name=(index===5?'cone-waffle-cup-raster':'cone-raster-'+index)+'-back.png';const im=new Image();im.onload=()=>{const height=Math.max(1,Math.round(im.naturalHeight*percent/100));const canvas=document.createElement('canvas');canvas.width=im.naturalWidth;canvas.height=height;canvas.getContext('2d').drawImage(im,0,0,im.naturalWidth,height,0,0,im.naturalWidth,height);canvas.toBlob(blob=>{if(!blob)return;const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name.replace('.png','-cropped.png');a.click();setTimeout(()=>URL.revokeObjectURL(url),5000);$('cropStatus').textContent='切り抜き済みPNGを書き出しました。画面表示用の高さ補正は設定データに含まれます。';},'image/png');};im.onerror=()=>{$('cropStatus').textContent='元の背面画像を読み込めませんでした。';};im.src=name;});
 function colorSettings(){return data.colorOverrides[chosen.flavor]||data.commonColor;}
 function selectedTint(){return colorSettings().tint||flavorColor[chosen.flavor];}
 const $=id=>document.getElementById(id);
@@ -465,7 +470,7 @@ function render(){
  }
  drawToppings(p,ext,art);
  $('stand').innerHTML='';
- $('export').value=JSON.stringify({type:'softcream-adjust',version:9,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
+ $('export').value=JSON.stringify({type:'softcream-adjust',version:10,backCropPercent:data.backCropPercent,commonCone:data.commonCone,commonColor:data.commonColor,coneOverrides:Object.fromEntries(Object.entries(data.coneOverrides).map(([i,v])=>[coneNames[i],v])),flavorOverrides:Object.fromEntries(Object.entries(data.colorOverrides).map(([i,v])=>[flavors[i],v])),toppings:data.toppings},null,2);
  try{localStorage.setItem(storeKey,JSON.stringify(data));}catch(e){}
 }
 $('copy').onclick=async()=>{
@@ -476,8 +481,8 @@ $('resetSelected').onclick=()=>{
  delete data.coneOverrides[chosen.cone];delete data.colorOverrides[chosen.flavor];
  sync();render();
 };
-$('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();syncToppings();render();};
+$('resetAll').onclick=()=>{if(!confirm('すべての調整を初期値に戻しますか？'))return;data=defaults();sync();syncToppings();syncCrop();render();};
 for(let i=0;i<6;i++)checkLayers(i);
-sync();syncToppings();render();prepareCreamExtensions(render);
+sync();syncToppings();syncCrop();render();prepareCreamExtensions(render);
 prepareSprinkleEdges(files,render);
 </script></body></html>
