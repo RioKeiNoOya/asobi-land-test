@@ -556,19 +556,69 @@ function next(){if(step<4){step++;page=0;render()}else{beep(800);speak('でき�
 function manageCustom(){let area=document.getElementById('customManage');area.innerHTML='';customs.forEach((c,i)=>{let b=document.createElement('button');b.textContent='× '+c.name;b.title=c.name+'を削除';b.onclick=()=>{if(confirm(c.name+'を削除する？')){customs.splice(i,1);try{localStorage.setItem('soft_customs',JSON.stringify(customs))}catch{};page=0;render()}};area.append(b)})}
 async function resizeData(file){return new Promise(resolve=>{let r=new FileReader();r.onload=()=>{let im=new Image();im.onload=()=>{let cv=document.createElement('canvas'),k=Math.min(1,240/Math.max(im.width,im.height));cv.width=Math.max(1,Math.round(im.width*k));cv.height=Math.max(1,Math.round(im.height*k));cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);resolve(cv.toDataURL('image/png'))};im.src=r.result};r.readAsDataURL(file)})}
 document.getElementById('upload').onchange=async e=>{let fs=[...e.target.files];for(let f of fs){let name=prompt('かざりの なまえを いれてね',f.name.replace(/\.[^.]+$/,''));if(!name)continue;let data=await resizeData(f);customs.push({name:name.slice(0,24),data});}try{localStorage.setItem('soft_customs',JSON.stringify(customs))}catch{alert('保存容量が足りません。画像を減らしてください')}e.target.value='';page=Math.max(0,Math.ceil(currentOptions().length/10)-1);render()};
-async function save(){let sig=JSON.stringify({state,decors});if(sig===savedSignature){document.getElementById('toast').textContent='おなじ しゃしんは ほぞんずみ！';return}let svg=document.querySelector('.preview svg').cloneNode(true);for(let el of svg.querySelectorAll('image')){let href=el.getAttribute('href');if(href&&!href.startsWith('data:')){try{let response=await fetch(href);let b=await response.blob();let data=await new Promise((resolve,reject)=>{let reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=reject;reader.readAsDataURL(b)});el.setAttribute('href',data)}catch{}}}let blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'});let url=URL.createObjectURL(blob),img=new Image();img.onload=async()=>{let c=document.createElement('canvas');c.width=700;c.height=1200;let ctx=c.getContext('2d');ctx.fillStyle='#fff7e7';ctx.fillRect(0,0,700,1200);const drawDecorsForSave=async(side)=>{
- for(const d of decors){
-  if((d.layer||initialToppingLayer(d.kind,d.label))!==side)continue;
-  const x=d.x/100*700,y=d.y/100*1200;
-  if(d.src){
-   const im=new Image();im.src=d.src;
-   try{await im.decode();ctx.drawImage(im,x,y,100,100)}catch{}
-  }else{ctx.font='75px serif';ctx.fillText(d.emoji,x,y+75)}
+async function save(){
+ const signature=JSON.stringify({state,decors});
+ if(signature===savedSignature){document.getElementById('toast').textContent='おなじ しゃしんは ほぞんずみ！';return;}
+ // Save exactly the same sandwiching order as the visible game.
+ async function svgImage(element){
+  const svg=element.cloneNode(true);
+  for(const node of svg.querySelectorAll('image')){
+   const href=node.getAttribute('href');
+   if(!href||href.startsWith('data:'))continue;
+   try{
+    const blob=await (await fetch(href)).blob();
+    const data=await new Promise((resolve,reject)=>{
+     const reader=new FileReader();
+     reader.onload=()=>resolve(reader.result);
+     reader.onerror=reject;
+     reader.readAsDataURL(blob);
+    });
+    node.setAttribute('href',data);
+   }catch(e){}
+  }
+  const blob=new Blob([new XMLSerializer().serializeToString(svg)],{type:'image/svg+xml'});
+  const url=URL.createObjectURL(blob),img=new Image();
+  try{img.src=url;await img.decode();return img;}
+  finally{URL.revokeObjectURL(url);}
  }
-};
-await drawDecorsForSave('back');
-ctx.drawImage(img,0,0,700,1200);
-await drawDecorsForSave('front');c.toBlob(async b=>{let file=new File([b],'softcream.jpg',{type:'image/jpeg'});try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file]});document.getElementById('toast').textContent='しゃしんを ほぞんしてね'}else{let a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='softcream.jpg';a.click();document.getElementById('toast').textContent='しゃしんを ダウンロードしたよ'}savedSignature=sig;beep(900)}catch{document.getElementById('toast').textContent='ほぞんを やめたよ'}},'image/jpeg',.85);URL.revokeObjectURL(url)};img.src=url}
+ const canvas=document.createElement('canvas');
+ canvas.width=700;canvas.height=1200;
+ const ctx=canvas.getContext('2d');
+ ctx.fillStyle='#fff7e7';ctx.fillRect(0,0,canvas.width,canvas.height);
+ async function paintDecors(side){
+  for(const d of decors){
+   if((d.layer||initialToppingLayer(d.kind,d.label))!==side)continue;
+   const x=d.x/100*canvas.width,y=d.y/100*canvas.height;
+   ctx.save();
+   ctx.translate(x,y);
+   ctx.rotate((d.rotation||0)*Math.PI/180);
+   if(d.src){
+    const im=new Image();im.src=d.src;
+    try{await im.decode();ctx.drawImage(im,-50,-50,100,100)}catch(e){}
+   }else{ctx.font='75px serif';ctx.textAlign='center';ctx.fillText(d.emoji,0,27);}
+   ctx.restore();
+  }
+ }
+ try{
+  ctx.drawImage(await svgImage(document.getElementById('coneBaseSvg')),0,0,700,1200);
+  await paintDecors('back');
+  ctx.drawImage(await svgImage(document.getElementById('mainIceSvg')),0,0,700,1200);
+  await paintDecors('front');
+  const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.87));
+  if(!blob)throw Error('Could not produce image');
+  const file=new File([blob],'softcream.jpg',{type:'image/jpeg'});
+  if(navigator.canShare&&navigator.canShare({files:[file]})){
+   await navigator.share({files:[file]});
+   document.getElementById('toast').textContent='しゃしんを ほぞんしてね';
+  }else{
+   const url=URL.createObjectURL(blob),anchor=document.createElement('a');
+   anchor.href=url;anchor.download='softcream.jpg';anchor.click();
+   setTimeout(()=>URL.revokeObjectURL(url),3000);
+   document.getElementById('toast').textContent='しゃしんを ダウンロードしたよ';
+  }
+  savedSignature=signature;beep(900);
+ }catch(e){document.getElementById('toast').textContent='ほぞんできなかったよ';console.error(e);}
+}
 render();
 probeToppings();
 probePhotoToppings();
