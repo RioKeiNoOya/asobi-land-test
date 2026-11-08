@@ -28,8 +28,8 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 <div class="sliders" id="colorSliders" style="margin-top:13px"></div>
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>ソースを比較</h2>
-<div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="strawberry">いちご</option><option value="white">ホワイトチョコ</option><option value="pink">ピンクチョコ</option></select></label>
-<label class="field">デザイン<select id="sauceStyle"><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
+<div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="white">ホワイトチョコ</option><option value="pink">ピンクチョコ</option><option value="strawberry">いちご</option></select></label>
+<label class="field">デザイン<select id="sauceStyle"><option value="shell">固まるチョコ（共通・半マット）</option><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
 <div class="sliders" id="sauceSliders" style="margin-top:12px"></div>
 <div style="border-top:1px solid #e9ddcf;margin-top:12px;padding-top:12px">
 <strong>ソース上に重ねるソフトの陰影（試作）</strong>
@@ -39,7 +39,7 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 </div><div class="sliders" id="shadeSliders"></div>
 <p class="note">濃さ0〜100％で調整できます。0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
 </div>
-<p class="note">チョコ・ホワイトチョコ・ピンクチョコは「全面にかけるソース（四角ベース）」がおすすめです。ピンクの現行PNGは未制作なので、選択した場合はSVG試作を表示します。</p></div>
+<p class="note">チョコ・ホワイト・ピンクは共通の半マット画像を色替えします。いちごは従来の別画像を維持します。位置と大きさは上のスライダーで調整してください。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
 <label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
@@ -138,7 +138,7 @@ const defaults=()=>({
  coneOverrides:Object.fromEntries(Object.entries(approvedPresets.coneOverrides).map(([name,v])=>[coneNames.indexOf(name),{...v}])),
  colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
  toppings:{
-  sauce:{kind:'none',style:'original',x:0,y:0,w:100,h:100,opacity:100,shadeOpacity:18,shadeBlur:1.5,shadeBlend:'soft-light',shadeSource:'gray'},
+  sauce:{kind:'none',style:'shell',x:0,y:0,w:100,h:100,opacity:100,shadeOpacity:18,shadeBlur:1.5,shadeBlend:'soft-light',shadeSource:'gray'},
   sprinkle:{style:'original',x:1,y:-1,w:120,h:130,opacity:100,double:false,secondX:24,secondY:-42,edge:true}
  }
 });
