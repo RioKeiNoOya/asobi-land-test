@@ -270,3 +270,18 @@ main>#game:not(.hidden){display:block!important;overflow:auto!important}
 html,body,#app,main,header,section,button,.game-tile,svg,img{user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
 img,svg{-webkit-user-drag:none;user-drag:none}
 input,textarea,select{user-select:text;-webkit-user-select:text}
+
+/* Kana-board microphone and keyboard accessibility */
+#kanaMic.listening{background:#f25e76!important;color:#fff!important;box-shadow:0 0 0 3px #ffb7c4;min-width:78px}
+#kanaGrid button:disabled,#kanaGrid button.kana-special:disabled,#kanaGrid button.kana-mark:disabled,
+#kanaSmall:disabled,#kanaLong:disabled{opacity:.22!important;filter:grayscale(.9)!important;cursor:default;box-shadow:none!important}
+#kanaGrid button:disabled:active,#kanaGrid button.kana-special:disabled:active{background:#ccc!important}
+.kana-dictation-link{text-align:center;margin:3px 0}
+#kanaDictationOpen{font-size:12px;padding:5px 11px;border-radius:14px;background:#f8e0b5}
+#kanaDictationWrap{background:#fff7df;border-radius:12px;padding:7px;position:relative;z-index:10}
+#kanaDictationWrap[hidden]{display:none!important}
+#kanaDictationWrap label{font-size:13px;font-weight:700}
+.kana-dictation-row{display:flex;gap:6px;margin-top:4px}
+#kanaDictation{min-width:0;flex:1;border:2px solid #e8ad79;border-radius:8px;font-size:16px;padding:7px;-webkit-user-select:text;user-select:text}
+#kanaDictationAdd{background:#ffcf6c;padding:7px 12px}
+#kanaStatus{min-height:18px;font-size:13px}
