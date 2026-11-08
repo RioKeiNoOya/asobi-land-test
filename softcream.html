@@ -135,7 +135,7 @@ function toppingSvg(kind,index=0){
 const photoToppingReady=new Set();
 const photoToppingKinds=['biscuit','strawberry-cut','strawberry-whole','mint','birch','blueberry','raspberry'];
 function photoToppingPath(kind,color=0){
- return 'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+'.png';
+ return 'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+(kind==='heart'&&color===6?'.svg':'.png');
 }
 function toppingArt(kind,color=0){
  const photo=photoToppingPath(kind,color);
