@@ -1,85 +1,79 @@
-<!doctype html><html lang="ja"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>いろまぜかきごおり | あそびランド</title><style>*{box-sizing:border-box}body{margin:0;background:linear-gradient(#b8edff,#fff5dc);font-family:system-ui;color:#563b43}header{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:#ffccde}a{color:inherit;font-weight:bold;text-decoration:none}h1{font-size:21px;margin:0}.wrap{display:grid;grid-template-columns:52% 48%;height:calc(100dvh - 54px)}.stage{display:flex;align-items:center;justify-content:center;position:relative}.stage svg{height:90%;width:95%;max-width:450px}.controls{padding:12px;overflow:hidden;background:#ffffffb8}button{font:inherit;font-weight:bold;border:0;border-radius:14px;padding:10px;cursor:pointer}.modes{display:flex;gap:8px;margin-bottom:10px}.modes button{background:#e5d4f5}.modes button.on{background:#a56fd8;color:white}.palette{display:grid;grid-template-columns:repeat(6,1fr);gap:12px;max-width:570px;margin:auto}.dot{aspect-ratio:1;display:grid;place-items:center;font-size:clamp(10px,1.25vw,15px);text-shadow:0 1px 2px #ffffff88;border:3px solid #fff;box-shadow:0 2px 4px #9998;border-radius:50%;touch-action:none;padding:0}.slots{display:flex;justify-content:center;gap:25px;margin:12px}.slot{height:68px;width:68px;border:3px dashed #a2a2a2;background:white;border-radius:50%;display:grid;place-items:center;font-size:13px;touch-action:none}.slot.filled{border:3px solid #795f72}.result{font-size:19px;font-weight:bold;text-align:center;margin:10px}.help{font-size:13px}.ghost{position:fixed;z-index:100;width:44px;height:44px;border-radius:50%;pointer-events:none;box-shadow:0 3px 9px #7778}@media(max-width:600px){.wrap{grid-template-columns:1fr;grid-template-rows:44% 56%}.controls{padding:8px}.palette{grid-template-columns:repeat(8,1fr);gap:5px}.slot{width:53px;height:53px}.stage svg{height:100%}h1{font-size:16px}}html,body{height:100%;overflow:hidden;overscroll-behavior:none}button,.dot,.slot{touch-action:none}.controls{min-height:0}.palette{grid-template-columns:repeat(8,minmax(0,1fr));gap:5px}.dot{max-height:43px;min-height:25px}.result{font-weight:bold;font-size:clamp(12px,2vw,19px)}@media(max-width:600px){.palette{grid-template-columns:repeat(8,minmax(0,1fr))}.controls{padding:6px}.dot{max-height:32px}.modes button{font-size:11px;padding:5px}.help{font-size:10px}}
-
-/* v25 iPhone */
-@media(max-width:700px) and (orientation:portrait){html,body{height:100%;overflow:hidden}.wrap{display:grid!important;grid-template-columns:1fr!important;grid-template-rows:40% 60%!important;height:calc(100dvh - 54px)!important}.stage{min-height:0;overflow:hidden}.controls{min-height:0;overflow-y:auto!important;padding:6px!important}.palette{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:5px!important}.dot{max-height:43px}.slots{margin:6px}.slot{width:45px;height:45px}.result{margin:5px;font-size:13px}}
-\n/* Ice and bowl share one centered viewBox; preserve the generated bowl proportions. */\n.stage svg image{image-rendering:auto}\n
-/* Child-friendly interaction: prevent accidental long-press text selection. */
-html,body,main,section,header,nav,button,img,svg{
- -webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"><meta name="theme-color" content="#f5cbd8">
+<title>いろまぜ あそび | あそびランド（おためし）</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(145deg,#edfbff,#fff1d8);color:#573d43;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}body.magic{background:radial-gradient(circle at 42% 30%,#233264,#0c1029 75%);color:#fff}header{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;background:#ffcfdf}body.magic header{background:#26335b}a{color:inherit;font-weight:800;text-decoration:none}h1{font-size:clamp(15px,3vw,21px);margin:0}.small{font-size:12px;white-space:nowrap}button{font:inherit;border:0;border-radius:13px;cursor:pointer;font-weight:800;touch-action:manipulation}.reset{padding:8px 11px;background:#fff4e8}.layout{height:calc(100dvh - 53px);display:grid;grid-template-columns:minmax(0,1fr) minmax(290px,39%)}.stage{min-height:0;display:grid;place-items:center;position:relative;padding:4px}#art{width:min(100%,500px);height:100%;max-height:600px;object-fit:contain;touch-action:none;display:block}.controls{background:#ffffffd9;padding:12px;overflow-y:auto;min-width:0}body.magic .controls{background:#141d42e8}.modes{display:flex;gap:7px;margin-bottom:12px}.modes button{padding:10px 7px;flex:1;background:#e6d4fa;color:#4a3862}.modes button.selected{background:#a65ac9;color:white}.palette{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;max-width:500px;margin:auto}.ink{height:65px;display:flex;align-items:center;justify-content:center;gap:7px;border:3px solid #fff;box-shadow:0 2px 7px #0002;font-size:16px;color:#25212a}.ink.selected{outline:4px solid #ef8f53;outline-offset:1px}.swatch{width:24px;height:24px;border-radius:50%;border:2px solid #fffc;box-shadow:inset 0 -2px 3px #0004}#feedback{text-align:center;font-size:clamp(16px,2.2vw,22px);font-weight:900;min-height:42px;margin:12px 0 5px}.tip{font-size:13px;text-align:center;opacity:.85}.actions{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}.actions button{padding:10px 18px;background:#ffe3ad;color:#533c35}body.magic .actions button{background:#44588f;color:white}.demo{font-size:12px;opacity:.65;text-align:right;margin:9px 0}.shimmer{font-size:14px;text-align:center;font-weight:700;opacity:.8}
+@media(max-width:700px){header{padding:8px 9px}.layout{grid-template-columns:1fr;grid-template-rows:52% 48%}.controls{padding:8px 9px}.modes{margin-bottom:7px}.modes button{font-size:13px;padding:8px 5px}.palette{grid-template-columns:repeat(3,1fr);gap:5px}.ink{height:45px;font-size:13px;border-width:2px}.swatch{width:19px;height:19px}#feedback{margin:5px 0;font-size:15px;min-height:23px}.tip{font-size:11px}.actions{margin-top:5px}.actions button{padding:7px 12px;font-size:13px}.demo{margin:4px 0}}
+</style></head>
+<body><header><a href="./index.html">← あそびランド</a><h1 id="heading">🍧 いろまぜ あそび</h1><button class="reset" id="clear">↻ はじめから</button></header>
+<main class="layout"><div class="stage"><canvas id="art" width="420" height="400" aria-label="指で色を塗ってあそぶ"></canvas></div><section class="controls">
+<div class="modes"><button id="paint" class="selected">🍧 かきごおり</button><button id="light">💎 まほうの いし</button></div>
+<div class="palette" id="palette"></div><div id="feedback" aria-live="polite">すきな いろを えらんでね！</div>
+<div class="tip" id="tip">こおりを なぞると シロップが じわ〜っと しみこむよ</div><div class="actions"><button id="undo">↶ ひとつ もどす</button><button id="save">📷 ほぞん</button></div>
+<div class="shimmer" id="shine"></div><div class="demo">あたらしい色あそび・テスト版</div></section></main>
+<script>
+'use strict';
+const W=420,H=400,IW=210,IH=170,OX=105,OY=83,STEP=1;
+const canvas=document.getElementById('art'),ctx=canvas.getContext('2d'),paintCanvas=document.createElement('canvas'),pctx=paintCanvas.getContext('2d',{willReadFrequently:true});paintCanvas.width=IW;paintCanvas.height=IH;
+const channels=new Float32Array(IW*IH*6);let mode='paint',chosen='red',down=false,last=null,history=[],pointer=null,dirty=true;
+const colors={
+ paint:[['あか','red','#e8444c'],['あお','blue','#317bd7'],['きいろ','yellow','#f9d735'],['しろ','white','#fff9ef'],['くろ','black','#35333c'],['むらさき','purple','#974bbb']],
+ light:[['あか','red','#ff3447'],['みどり','green','#42f36b'],['あお','blue','#4a8fff']]
+};
+const iceShape=new Path2D('M92 226 C87 210 92 191 104 179 C105 162 119 146 137 134 C146 116 165 112 182 102 C192 86 211 81 222 93 C246 94 252 115 271 129 C289 141 305 157 314 181 C327 198 323 220 309 231 C264 248 141 248 92 226Z');
+const gemShape=new Path2D('M208 82 L267 105 L312 165 L286 260 L208 319 L128 259 L106 164 L151 106Z');
+const bowl=new Image();bowl.onload=()=>{dirty=true;render()};bowl.src='ice-bowl-raster.png';
+function say(s){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang='ja-JP';u.rate=.87;speechSynthesis.speak(u)}catch(e){}}
+function channelFor(name){return {red:0,blue:1,yellow:2,white:3,black:4,purple:5,green:1}[name]}
+function palette(){const root=document.getElementById('palette');root.innerHTML='';for(const [label,key,color] of colors[mode]){const b=document.createElement('button');b.className='ink'+(key===chosen?' selected':'');b.type='button';b.style.background=mode==='light'?'#d7dafa':'#fff9ee';b.innerHTML='<span class="swatch" style="background:'+color+'"></span>'+label;b.onclick=()=>{chosen=key;palette();document.getElementById('feedback').textContent=label+'を えらんだよ';say(label)};root.append(b)}}
+function reset(announce=false){channels.fill(0);history=[];last=null;dirty=true;render();if(announce)document.getElementById('feedback').textContent='まっしろに なったよ'}
+function switchMode(next){mode=next;chosen='red';document.body.classList.toggle('magic',mode==='light');document.getElementById('paint').classList.toggle('selected',mode==='paint');document.getElementById('light').classList.toggle('selected',mode==='light');document.getElementById('tip').textContent=mode==='paint'?'こおりを なぞると シロップが じわ〜っと しみこむよ':'ひかりを かさねて しろい ダイヤモンドに しよう！';document.getElementById('heading').textContent=mode==='paint'?'🍧 いろまぜ かきごおり':'💎 まほうの ひかる いし';document.getElementById('shine').textContent='';reset();palette();}
+function within(x,y){return ctx.isPointInPath(mode==='paint'?iceShape:gemShape,x,y)}
+function daub(x,y,power=1){const gx=(x-OX)/IW,gy=(y-OY)/IH;const radius=mode==='paint'?17:26;const r2=radius*radius;
+ const minx=Math.max(0,Math.floor((x-radius-OX))),maxx=Math.min(IW-1,Math.ceil(x+radius-OX)),miny=Math.max(0,Math.floor(y-radius-OY)),maxy=Math.min(IH-1,Math.ceil(y+radius-OY));
+ const ch=channelFor(chosen);for(let yy=miny;yy<=maxy;yy++){for(let xx=minx;xx<=maxx;xx++){const cx=OX+xx+.5,cy=OY+yy+.5,dx=cx-x,dy=cy-y,d2=dx*dx+dy*dy;if(d2>r2||!within(cx,cy))continue;
+ const fall=Math.pow(1-Math.sqrt(d2)/radius,1.45);const off=(yy*IW+xx)*6+ch;channels[off]=Math.min(1,channels[off]+fall*.22*power);
+ }}dirty=true;}
+function stroke(x,y){if(last){const dx=x-last.x,dy=y-last.y,dist=Math.hypot(dx,dy),n=Math.max(1,Math.ceil(dist/4));for(let i=1;i<=n;i++)daub(last.x+dx*i/n,last.y+dy*i/n)}else daub(x,y);last={x,y};render();}
+function point(e){const r=canvas.getBoundingClientRect();const scale=Math.min(r.width/W,r.height/H),left=r.left+(r.width-W*scale)/2,top=r.top+(r.height-H*scale)/2;return {x:(e.clientX-left)/scale,y:(e.clientY-top)/scale};}
+canvas.addEventListener('pointerdown',e=>{const p=point(e);if(!within(p.x,p.y))return;e.preventDefault();pointer=e.pointerId;down=true;history.push(channels.slice());if(history.length>12)history.shift();canvas.setPointerCapture(e.pointerId);stroke(p.x,p.y)});
+canvas.addEventListener('pointermove',e=>{if(!down||e.pointerId!==pointer)return;e.preventDefault();const p=point(e);stroke(p.x,p.y)});
+function stop(){down=false;pointer=null;last=null;updateMessage();}canvas.addEventListener('pointerup',stop);canvas.addEventListener('pointercancel',stop);
+function mixRYB(a,b,c,w,k,p){ // Three primaries with intuitive pairwise paint mixing.
+ const sum=a+b+c+p; if(sum<.002)return [247,251,255];
+ const v=[a,b,c,p].sort((x,y)=>y-x);const aa=Math.min(1,a),bb=Math.min(1,b),cc=Math.min(1,c),purple=Math.min(1,p);
+ let R=248,G=250,B=252;
+ // Color strength rises with brush strokes; additive light is handled separately.
+ const intensity=Math.min(1,Math.pow(sum,.75));
+ if(a>=b&&a>=c&&a>=purple){R=232;G=65;B=75;}
+ if(b>a&&b>=c&&b>=purple){R=52;G=112;B=225;}
+ if(c>a&&c>b&&c>=purple){R=249;G=209;B=48;}
+ if(purple>a&&purple>b&&purple>c){R=154;G=74;B=193;}
+ if(a>.1&&c>.1&&Math.min(a,c)>Math.max(b,purple)*.75){const t=Math.min(1,2*Math.min(a,c));R=R*(1-t)+245*t;G=G*(1-t)+136*t;B=B*(1-t)+39*t;}
+ if(b>.1&&c>.1&&Math.min(b,c)>Math.max(a,purple)*.75){const t=Math.min(1,2*Math.min(b,c));R=R*(1-t)+60*t;G=G*(1-t)+165*t;B=B*(1-t)+80*t;}
+ if(a>.1&&b>.1&&Math.min(a,b)>Math.max(c,purple)*.75){const t=Math.min(1,2*Math.min(a,b));R=R*(1-t)+153*t;G=G*(1-t)+67*t;B=B*(1-t)+173*t;}
+ if(a>.25&&b>.25&&c>.25){const t=Math.min(1,(Math.min(a,b,c)-.25)*2.3);R=R*(1-t)+110*t;G=G*(1-t)+75*t;B=B*(1-t)+59*t;}
+ const whiten=Math.min(1,w*.8),blacken=Math.min(.85,k*.75);return [R,G,B].map(x=>(248*(1-intensity)+x*intensity)*(1-whiten)+248*whiten).map(x=>Math.round(x*(1-blacken)+37*blacken));
 }
-img,svg{-webkit-user-drag:none;user-drag:none}
-input,textarea,select{ -webkit-user-select:text;user-select:text; }
-</style><header><a href="./index.html">← あそびランド</a><h1><img src="ice-bowl-raster.png" alt="かきごおりのうつわ" style="height:38px;width:54px;vertical-align:middle"> カラフルかきごおり</h1><button onclick="clearSlots()">↻</button></header><main class="wrap"><div class="stage"><svg viewBox="0 0 360 340"><rect x="8" y="5" width="344" height="330" rx="30" fill="#ffffff7d"/><g opacity=".65"><text x="30" y="50" font-size="32">🧪</text><text x="295" y="50" font-size="32">✨</text></g><image href="ice-bowl-raster.png" x="70" y="187" width="220" height="138" preserveAspectRatio="xMidYMid meet"/><defs><clipPath id="iceShape" clipPathUnits="userSpaceOnUse"><path d="M79 209 C77 195 86 182 94 171 C86 160 102 143 112 133 C109 117 127 109 140 102 C142 92 156 88 169 83 C175 72 191 70 201 82 C217 85 221 98 234 105 C247 113 253 122 263 137 C277 149 278 167 283 178 C288 193 284 208 277 211 C245 223 121 224 79 209Z"/></clipPath><linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset=".64" stop-color="#f4fbff"/><stop offset="1" stop-color="#e3f1fc"/></linearGradient><linearGradient id="syrupShade" x1="0" y1="0" x2=".65" y2="1"><stop stop-color="#fff" stop-opacity=".38"/><stop offset=".50" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#304867" stop-opacity=".16"/></linearGradient></defs>
-<g transform="translate(180 210) scale(.88) translate(-180 -210)" clip-path="url(#iceShape)"><rect x="75" y="70" width="215" height="160" fill="url(#snow)"/>
-<path d="M 75 196 Q 108 170 131 176 Q 157 152 177 161 Q 207 142 228 166 Q 256 160 289 184 L289 105 Q190 40 75 110 Z" id="icecolor" fill="#ffffff" opacity=".82"/>
-<path d="M 84 199 C 120 189 157 192 188 178 C 224 180 246 188 278 194 L 285 215 L 80 215Z" fill="#ffffff" opacity=".48"/>
-<path d="M103 151 l12 -11 10 7 -14 14 Z M148 123 l14 -10 8 10 -14 11 Z M199 117 l15 7 -10 11 -13 -8 Z M240 151 l10 8 -10 12 -9 -12 Z M131 180 l13 5 -8 12 -12 -4 Z M197 192 l12 -7 8 12 -11 8 Z" fill="#fff" opacity=".50"/>
-<path d="M79 74H289V230H79Z" fill="url(#syrupShade)"/></g>
-<path transform="translate(180 210) scale(.88) translate(-180 -210)" d="M79 209 C77 195 86 182 94 171 C86 160 102 143 112 133 C109 117 127 109 140 102 C142 92 156 88 169 83 C175 72 191 70 201 82 C217 85 221 98 234 105 C247 113 253 122 263 137 C277 149 278 167 283 178 C288 193 284 208 277 211" fill="none" stroke="#ceeafa" stroke-width="2"/>
-<path transform="translate(180 210) scale(.88) translate(-180 -210)" d="M77 208 Q180 227 282 208" fill="none" stroke="#8bd6f6" stroke-width="2" stroke-linecap="round" opacity=".35"/><text x="180" y="320" text-anchor="middle" font-size="17" fill="#755065">ふたつの いろを まぜよう！</text></svg></div><section class="controls"><div class="modes"><button id="paint" class="on" onclick="mode='paint';render()">🎨 ふつうのシロップ</button><button id="light" onclick="mode='light';render()">✨ ピカピカシロップ</button></div><div class="slots"><div class="slot" data-slot="0">①</div><div class="slot" data-slot="1">②</div></div><div class="result" id="result">いろの まるを うえに ドラッグ！</div><div class="palette" id="palette"></div><p class="help">12色から2色の丸を空白の丸へ運んでね。タップしてから空欄をタップしてもOK。</p></section></main><script>
-const colors=[['しろ','#fff8ec'],['きいろ','#ffe03b'],['だいだい','#f99732'],['あか','#ed3e43'],['ももいろ','#f7a0bd'],['むらさき','#9c6dcb'],['あお','#397ddd'],['みずいろ','#7dd5ec'],['みどり','#51b45b'],['きみどり','#a8ce57'],['ちゃいろ','#91613e'],['くろ','#35343a']];let mode='paint',slots=[null,null],selected=null;const $=id=>document.getElementById(id);function speak(s){try{speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(s);u.lang='ja-JP';u.rate=.85;speechSynthesis.speak(u)}catch{}}function rgb(h){return [1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255)}function mix(a,b){let A=rgb(a),B=rgb(b);let c=A.map((v,i)=>{let q=mode==='light'?Math.min(1,v+B[i]):Math.sqrt(v*B[i]);return Math.round(q*255)});return '#'+c.map(x=>x.toString(16).padStart(2,'0')).join('')}function render(){['paint','light'].forEach(k=>$(k).classList.toggle('on',k===mode));document.querySelectorAll('.slot').forEach((e,i)=>{e.style.background=slots[i]===null?'white':colors[slots[i]][1];e.textContent=slots[i]===null?i+1:'';e.classList.toggle('filled',slots[i]!==null)});let result=slots.every(x=>x!==null);let hex=result?mix(colors[slots[0]][1],colors[slots[1]][1]):'#ffffff';$('icecolor').setAttribute('fill',hex);$('result').textContent=result?colors[slots[0]][0]+' ＋ '+colors[slots[1]][0]+' → '+(colors.find(x=>x[1].toLowerCase()===hex)?.[0]||'まざった いろ'):'いろを 2つ えらんでね';if(result)speak($('result').textContent)}function setSlot(i,n){slots[i]=n;selected=null;render()}document.querySelectorAll('.slot').forEach(e=>e.onclick=()=>{if(selected!==null)setSlot(+e.dataset.slot,selected)});colors.forEach((c,i)=>{let b=document.createElement('button');b.className='dot';b.textContent=c[0];b.style.background=c[1];b.style.color=['しろ','きいろ','みずいろ','きみどり','ももいろ'].includes(c[0])?'#3b3543':'white';b.title=c[0];b.setAttribute('aria-label',c[0]);b.onclick=()=>{selected=i;speak(c[0])};b.onpointerdown=e=>{e.preventDefault();if(e.pointerType==='mouse')return;selected=i;let ghost=document.createElement('div');ghost.className='ghost';ghost.style.background=c[1];document.body.append(ghost);const move=ev=>{ghost.style.left=ev.clientX-22+'px';ghost.style.top=ev.clientY-22+'px'};move(e);b.setPointerCapture(e.pointerId);b.onpointermove=move;b.onpointerup=ev=>{let target=document.elementFromPoint(ev.clientX,ev.clientY)?.closest('.slot');if(target)setSlot(+target.dataset.slot,i);ghost.remove();b.onpointermove=null;b.onpointerup=null}};$('palette').append(b)});function clearSlots(){slots=[null,null];render()}render();
-</script><script>
-/* Test build: remove only near-white, edge-connected raster backgrounds.
-   Existing transparent PNGs and cream highlights are preserved. */
-(function(){
- const assets=new Set([
- 'soft-round.png','soft-classic.png','soft-fine.png',
- 'cone-raster-0.png','cone-raster-1.png','cone-raster-2.png',
- 'cone-raster-3.png','cone-raster-4.png','cone-waffle-cup-raster.png',
- 'ai-strawberry.png','deco-cherry.png','ai-banana.png','deco-wafer.png',
- 'deco-star.png','deco-heart.png','deco-bow.png','ice-bowl-raster.png'
- ]);
- const cache=new Map(), loading=new Set();
- function apply(){
-  document.querySelectorAll('img[src],image[href]').forEach(el=>{
-   const attr=el.tagName.toLowerCase()==='image'?'href':'src';
-   const value=el.getAttribute(attr);
-   if(!value||value.startsWith('data:'))return;
-   const name=value.split('?')[0].split('/').pop();
-   if(assets.has(name)&&cache.has(name))el.setAttribute(attr,cache.get(name));
-  });
- }
- function clean(name){
-  if(loading.has(name))return;
-  loading.add(name);
-  const im=new Image();
-  im.onload=()=>{
-   try{
-    const w=im.naturalWidth,h=im.naturalHeight;
-    if(!w||!h||w*h>3000000)return;
-    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
-    const img=ctx.getImageData(0,0,w,h),p=img.data;
-    let white=0,clear=0;
-    for(const idx of [0,w-1,(h-1)*w,w*h-1]){
-      const j=4*idx;
-      if(p[j+3]<240)clear++;
-      if(p[j+3]>245&&Math.min(p[j],p[j+1],p[j+2])>=248)white++;
-    }
-    // No solid white background: don't change antialiased original art.
-    if(clear>0||white<3)return;
-    const seen=new Uint8Array(w*h),q=new Int32Array(w*h);let head=0,tail=0;
-    function push(i){if(seen[i])return;seen[i]=1;const j=4*i;
-      if(p[j+3]>240&&Math.min(p[j],p[j+1],p[j+2])>=245)q[tail++]=i;
-    }
-    for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}
-    for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
-    if(!tail)return;
-    while(head<tail){const i=q[head++],j=4*i;p[j+3]=0;
-      const x=i%w,y=(i/w)|0;
-      if(x>0)push(i-1);if(x<w-1)push(i+1);
-      if(y>0)push(i-w);if(y<h-1)push(i+w);
-    }
-    ctx.putImageData(img,0,0);cache.set(name,canvas.toDataURL('image/png'));apply();
-   }catch(e){/* retain original on unsupported canvas */ }
-  };
-  im.src=name;
- }
- assets.forEach(clean);
- const obs=new MutationObserver(apply);
- obs.observe(document.body,{subtree:true,childList:true});
- apply();
-})();
-</script></html>
-
-<!-- v27: 12色のクレパス風パレット。選択・ドラッグ・混色機能は維持。 -->
+function drawPaint(){const img=pctx.createImageData(IW,IH),d=img.data;for(let y=0;y<IH;y++)for(let x=0;x<IW;x++){const i=(y*IW+x),p=i*6,o=i*4;const val=mode==='paint'?mixRYB(channels[p],channels[p+1],channels[p+2],channels[p+3],channels[p+4],channels[p+5]):[Math.round(18+237*channels[p]),Math.round(24+231*channels[p+1]),Math.round(48+207*channels[p+2])];d[o]=val[0];d[o+1]=val[1];d[o+2]=val[2];d[o+3]=255;}pctx.putImageData(img,0,0);}
+function render(){if(!dirty)return;dirty=false;ctx.clearRect(0,0,W,H);
+ if(mode==='paint'){
+ const bg=ctx.createLinearGradient(0,0,0,H);bg.addColorStop(0,'#e9f9ff');bg.addColorStop(1,'#fff7db');ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+ ctx.fillStyle='#ffffffa8';ctx.beginPath();ctx.roundRect(18,16,384,365,29);ctx.fill();
+ if(bowl.complete&&bowl.naturalWidth)ctx.drawImage(bowl,80,222,260,145);
+ ctx.save();ctx.clip(iceShape);ctx.fillStyle='#f8fdff';ctx.fillRect(80,80,260,177);drawPaint();ctx.globalAlpha=.98;ctx.imageSmoothingEnabled=true;ctx.drawImage(paintCanvas,OX,OY,IW,IH);ctx.globalAlpha=.21;ctx.strokeStyle='#ffffff';ctx.lineWidth=5;for(let i=0;i<10;i++){ctx.beginPath();ctx.moveTo(90+i*22,174+(i%3)*14);ctx.lineTo(101+i*22,165+(i%3)*11);ctx.stroke();}ctx.restore();ctx.strokeStyle='#c5e9f8';ctx.lineWidth=2;ctx.stroke(iceShape);
+ ctx.fillStyle='#8c5878';ctx.font='bold 20px system-ui';ctx.textAlign='center';ctx.fillText('シロップを かけてね！',210,366);
+ }else{
+ ctx.fillStyle='#111832';ctx.fillRect(0,0,W,H);const stars=54;for(let i=0;i<stars;i++){const x=(i*97+27)%420,y=(i*137+13)%370;ctx.fillStyle='rgba(222,232,255,'+(.15+(i%5)*.12)+')';ctx.beginPath();ctx.arc(x,y,.7+(i%3)*.35,0,Math.PI*2);ctx.fill();}
+ ctx.save();ctx.shadowBlur=25;ctx.shadowColor='#7d96ff';ctx.fillStyle='#263974';ctx.fill(gemShape);ctx.restore();
+ ctx.save();ctx.clip(gemShape);drawPaint();ctx.drawImage(paintCanvas,OX,OY,IW,IH);
+ const gl=ctx.createLinearGradient(110,80,305,320);gl.addColorStop(0,'#ffffff85');gl.addColorStop(.52,'#879cf729');gl.addColorStop(1,'#0b123f99');ctx.fillStyle=gl;ctx.fillRect(90,80,235,250);
+ ctx.strokeStyle='#ffffff75';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(151,106);ctx.lineTo(208,163);ctx.lineTo(267,105);ctx.moveTo(106,164);ctx.lineTo(208,163);ctx.lineTo(312,165);ctx.moveTo(128,259);ctx.lineTo(208,163);ctx.lineTo(286,260);ctx.moveTo(208,163);ctx.lineTo(208,319);ctx.stroke();ctx.restore();
+ ctx.save();ctx.strokeStyle='#aebeff';ctx.lineWidth=3;ctx.shadowBlur=22;ctx.shadowColor='#7aabff';ctx.stroke(gemShape);ctx.restore();
+ ctx.font='bold 21px system-ui';ctx.fillStyle='#fff';ctx.textAlign='center';ctx.fillText('ひかりを かさねよう！',210,372);
+ }}
+function updateMessage(){let strengths=Array(6).fill(0),count=0;for(let y=30;y<IH-20;y+=7)for(let x=35;x<IW-35;x+=7){if(!within(x+OX,y+OY))continue;count++;for(let k=0;k<6;k++)strengths[k]+=channels[(y*IW+x)*6+k]};if(mode==='light'){const all=[strengths[0],strengths[1],strengths[2]];const enough=all.every(x=>x>6);document.getElementById('feedback').textContent=enough?'✨ しろく かがやいた！':'ひかりが ひろがったよ！';document.getElementById('shine').textContent=enough?'💎 まほうの ダイヤモンド！':'';if(enough)say('ダイヤモンド！');}else{document.getElementById('feedback').textContent='いろが じわ〜っと しみこんだよ！';}}
+document.getElementById('paint').onclick=()=>switchMode('paint');document.getElementById('light').onclick=()=>switchMode('light');document.getElementById('clear').onclick=()=>reset(true);document.getElementById('undo').onclick=()=>{if(history.length){channels.set(history.pop());dirty=true;render();document.getElementById('feedback').textContent='ひとつ もどしたよ'}};
+document.getElementById('save').onclick=()=>{const a=document.createElement('a');a.href=canvas.toDataURL('image/png');a.download=mode==='paint'?'kakigori.png':'magic-gem.png';a.click();};
+palette();render();
+</script></body></html>
