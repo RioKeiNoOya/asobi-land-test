@@ -134,6 +134,7 @@ const approvedPresets={"commonCone":{"cw":120,"ch":120,"cx":0,"cy":0,"iw":80,"ih
 const defaults=()=>({
  commonCone:{...approvedPresets.commonCone},
  commonColor:{...approvedPresets.commonColor},
+ backCropPercent:{},
  coneOverrides:Object.fromEntries(Object.entries(approvedPresets.coneOverrides).map(([name,v])=>[coneNames.indexOf(name),{...v}])),
  colorOverrides:Object.fromEntries(Object.entries(approvedPresets.flavorOverrides).map(([name,v])=>[flavors.indexOf(name),{...v}])),
  toppings:{
@@ -222,6 +223,7 @@ function syncToppings(){
  $('sauceShadeSource').value=data.toppings.sauce.shadeSource;
  $('sauceKind').value=data.toppings.sauce.kind;
  $('sauceStyle').value=data.toppings.sauce.style;
+ syncCrop();
  $('sprinkleStyle').value=data.toppings.sprinkle.style;
  $('sprinkleDouble').checked=data.toppings.sprinkle.double;
  $('edgeSprinkleEnabled').checked=data.toppings.sprinkle.edge!==false;
@@ -456,6 +458,8 @@ function render(){
  const c=cp(),p=ip(),fl=colorSettings(),name=coneName(),base=name.replace(/\.png$/,'');
  const layers=ready.get(chosen.cone);
  $('back').innerHTML=imageTag(layers?base+'-back.png':name,c);
+ const cropRatio=cropPercent()/100,cutY=c.y+c.h*cropRatio;
+ $('cropGuide').innerHTML=cropRatio>=1?'':'<path d="M'+c.x+' '+cutY+' H'+(c.x+c.w)+'" stroke="#df443a" stroke-width="2" stroke-dasharray="5 4"/><text x="'+c.x+'" y="'+(cutY-5)+'" fill="#b73532" font-size="10">ここより下をカット</text>';
  $('front').innerHTML=layers?imageTag(base+'-front.png',c):'';
  const ext=creamImageGeometry(p,chosen.shape);
  const art=imageTag(creamSource(chosen.shape),ext);
