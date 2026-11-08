@@ -13,7 +13,7 @@
 <div class="shimmer" id="shine"></div><div class="demo">あたらしい色あそび・テスト版</div></section></main>
 <script>
 'use strict';
-const W=420,H=400,IW=210,IH=170,OX=105,OY=83,STEP=1;
+const W=420,H=400,IW=210,IH=260,OX=105,OY=67,STEP=1;
 const canvas=document.getElementById('art'),ctx=canvas.getContext('2d'),paintCanvas=document.createElement('canvas'),pctx=paintCanvas.getContext('2d',{willReadFrequently:true});paintCanvas.width=IW;paintCanvas.height=IH;
 const channels=new Float32Array(IW*IH*6);let mode='paint',chosen='red',down=false,last=null,history=[],pointer=null,dirty=true;
 const colors={
@@ -24,7 +24,7 @@ const iceShape=new Path2D('M92 226 C87 210 92 191 104 179 C105 162 119 146 137 1
 const gemShape=new Path2D('M208 82 L267 105 L312 165 L286 260 L208 319 L128 259 L106 164 L151 106Z');
 const bowl=new Image();bowl.onload=()=>{dirty=true;render()};bowl.src='ice-bowl-raster.png';
 function say(s){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s);u.lang='ja-JP';u.rate=.87;speechSynthesis.speak(u)}catch(e){}}
-function channelFor(name){return {red:0,blue:1,yellow:2,white:3,black:4,purple:5,green:1}[name]}
+function channelFor(name){return mode==='light'?{red:0,green:1,blue:2}[name]:{red:0,blue:1,yellow:2,white:3,black:4,purple:5}[name]}
 function palette(){const root=document.getElementById('palette');root.innerHTML='';for(const [label,key,color] of colors[mode]){const b=document.createElement('button');b.className='ink'+(key===chosen?' selected':'');b.type='button';b.style.background=mode==='light'?'#d7dafa':'#fff9ee';b.innerHTML='<span class="swatch" style="background:'+color+'"></span>'+label;b.onclick=()=>{chosen=key;palette();document.getElementById('feedback').textContent=label+'を えらんだよ';say(label)};root.append(b)}}
 function reset(announce=false){channels.fill(0);history=[];last=null;dirty=true;render();if(announce)document.getElementById('feedback').textContent='まっしろに なったよ'}
 function switchMode(next){mode=next;chosen='red';document.body.classList.toggle('magic',mode==='light');document.getElementById('paint').classList.toggle('selected',mode==='paint');document.getElementById('light').classList.toggle('selected',mode==='light');document.getElementById('tip').textContent=mode==='paint'?'こおりを なぞると シロップが じわ〜っと しみこむよ':'ひかりを かさねて しろい ダイヤモンドに しよう！';document.getElementById('heading').textContent=mode==='paint'?'🍧 いろまぜ かきごおり':'💎 まほうの ひかる いし';document.getElementById('shine').textContent='';reset();palette();}
