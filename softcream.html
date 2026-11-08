@@ -139,7 +139,7 @@ function toppingSvg(kind,index=0){
 const photoToppingReady=new Set();
 const photoToppingKinds=['biscuit','strawberry-cut','strawberry-whole','mint','birch','blueberry','raspberry'];
 function photoToppingPath(kind,color=0){
- return 'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+(kind==='heart'&&color===6?'.svg':'.png');
+ return kind==='mint'?'topping-mint.webp':'topping-'+kind+(colorToppingKinds.has(kind)?'-'+color:'')+(kind==='heart'&&color===6?'.svg':'.png');
 }
 function toppingArt(kind,color=0){
  if(kind==='heart'){const key=kind+'-'+color;return artCache[key]||(artCache[key]=toppingSvg(kind,color));}
@@ -340,7 +340,7 @@ function iceSvg(){
 const toppingAssetNames={
  1:'sauce-chocolate.png',
  5:'sauce-strawberry.png',
- 3:'sprinkles-rainbow.png'
+ 3:'sprinkles-rainbow.webp'
 };
 const toppingReady={};
 function probeToppings(){
@@ -361,7 +361,7 @@ function toppingMask(){
 }
 function toppingImage(file){
  const p=toppingBounds();
- const sprinkle=file==='sprinkles-rainbow.png';
+ const sprinkle=file==='sprinkles-rainbow.webp';
  // Keep the restored sauce artwork at a moderate size with a few downward
  // drips. Spread the existing original-color sprinkles over the whole scoop
  // while the actual scoop alpha masks anything outside its silhouette.
@@ -647,66 +647,4 @@ probeToppings();
 prepareCreamExtensions(render);
 // Use the explicitly bundled WebP paths without runtime probing.
 prepareSprinkleEdges(['soft-round.png','soft-classic.png','soft-fine.png'],render);
-</script><script>
-/* Test build: remove only near-white, edge-connected raster backgrounds.
-   Existing transparent PNGs and cream highlights are preserved. */
-(function(){
- const assets=new Set([
- 'soft-round.png','soft-classic.png','soft-fine.png',
- 'cone-raster-0.png','cone-raster-1.png','cone-raster-2.png',
- 'cone-raster-3.png','cone-raster-4.png','cone-waffle-cup-raster.png',
- 'ai-strawberry.png','deco-cherry.png','ai-banana.png','deco-wafer.png',
- 'deco-star.png','deco-heart.png','deco-bow.png','ice-bowl-raster.png'
- ]);
- const cache=new Map(), loading=new Set();
- function apply(){
-  document.querySelectorAll('img[src],image[href]').forEach(el=>{
-   const attr=el.tagName.toLowerCase()==='image'?'href':'src';
-   const value=el.getAttribute(attr);
-   if(!value||value.startsWith('data:'))return;
-   const name=value.split('?')[0].split('/').pop();
-   if(assets.has(name)&&cache.has(name))el.setAttribute(attr,cache.get(name));
-  });
- }
- function clean(name){
-  if(loading.has(name))return;
-  loading.add(name);
-  const im=new Image();
-  im.onload=()=>{
-   try{
-    const w=im.naturalWidth,h=im.naturalHeight;
-    if(!w||!h||w*h>3000000)return;
-    const canvas=document.createElement('canvas');canvas.width=w;canvas.height=h;
-    const ctx=canvas.getContext('2d',{willReadFrequently:true});ctx.drawImage(im,0,0);
-    const img=ctx.getImageData(0,0,w,h),p=img.data;
-    let white=0,clear=0;
-    for(const idx of [0,w-1,(h-1)*w,w*h-1]){
-      const j=4*idx;
-      if(p[j+3]<240)clear++;
-      if(p[j+3]>245&&Math.min(p[j],p[j+1],p[j+2])>=248)white++;
-    }
-    // No solid white background: don't change antialiased original art.
-    if(clear>0||white<3)return;
-    const seen=new Uint8Array(w*h),q=new Int32Array(w*h);let head=0,tail=0;
-    function push(i){if(seen[i])return;seen[i]=1;const j=4*i;
-      if(p[j+3]>240&&Math.min(p[j],p[j+1],p[j+2])>=245)q[tail++]=i;
-    }
-    for(let x=0;x<w;x++){push(x);push((h-1)*w+x)}
-    for(let y=0;y<h;y++){push(y*w);push(y*w+w-1)}
-    if(!tail)return;
-    while(head<tail){const i=q[head++],j=4*i;p[j+3]=0;
-      const x=i%w,y=(i/w)|0;
-      if(x>0)push(i-1);if(x<w-1)push(i+1);
-      if(y>0)push(i-w);if(y<h-1)push(i+w);
-    }
-    ctx.putImageData(img,0,0);cache.set(name,canvas.toDataURL('image/png'));apply();
-   }catch(e){/* retain original on unsupported canvas */ }
-  };
-  im.src=name;
- }
- assets.forEach(clean);
- const obs=new MutationObserver(apply);
- obs.observe(document.body,{subtree:true,childList:true});
- apply();
-})();
 </script></html>
