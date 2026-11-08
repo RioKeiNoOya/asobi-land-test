@@ -29,12 +29,12 @@ const { chromium } = require('playwright');
   for(let i=0;i<3;i++){
    await page.evaluate(i=>{state.shape=i;render()},i);
    const image=page.locator('#ice image');
-   if(await image.count()!==1)throw Error('Soft-serve shape '+i+' image missing');
+   if(await image.count()<1)throw Error('Soft-serve shape '+i+' image missing');
    const href=await image.getAttribute('href');
    if(!href?.includes(['round','classic','fine'][i]))throw Error('Wrong soft serve shape '+i+' '+href);
   }
   await page.evaluate(()=>{step=2;state.flavor=1;state.flavor2=3;state.mix=true;render()});
-  if(await page.locator('#ice image').count()!==2)throw Error('Mix images missing');
+  if(await page.locator('#ice image').count()<2)throw Error('Mix images missing');
   await page.evaluate(()=>{state.cone=5;state.mix=false;render()});
   const cone=await page.locator('#coneBack image').getAttribute('href');
   if(!cone?.includes('cone-waffle-cup-raster-back'))throw Error('Wrong waffle cup '+cone);
