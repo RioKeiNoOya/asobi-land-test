@@ -11,7 +11,7 @@ function renderManage(){const root=$('manage');root.replaceChildren();images.for
 function shuffled(){const count=gridSize*gridSize;const arr=Array.from({length:count},(_,i)=>i);for(let i=count-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
 function position(i){return `${(i%gridSize)*100/(gridSize-1)}% ${Math.floor(i/gridSize)*100/(gridSize-1)}%`}
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);if(selectedImage)startGame(selectedImage)}));
-function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();renderBoard();renderTray();show('game');requestAnimationFrame(fitPuzzleLayout)}
+function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
 function puzzleTrayShape(){
  const count=gridSize*gridSize;
  const rows=count<=16?2:3;
@@ -23,32 +23,38 @@ function fitPuzzleLayout(){
  if(!area)return;
  const r=area.getBoundingClientRect();
  if(r.width<100||r.height<100)return;
- const width=Math.max(100,r.width-8),height=Math.max(100,r.height-8);
- const count=gridSize*gridSize,gap=10;
- // Tablet landscape: the loose-piece tray occupies the right-hand side of
- // the board, not precious board height. The board can use almost full height.
- const sideBySide=width>=610&&height>=350;
+ const count=gridSize*gridSize;
+ const vw=Math.min(document.documentElement.clientWidth,window.innerWidth);
+ const vh=window.innerHeight;
+ const width=Math.max(90,r.width-4);
+ const height=Math.max(90,Math.min(r.height,vh-r.top-6));
+ // On landscape tablets reserve only a narrow strip for the picture example,
+ // then put the loose-piece tray beside a genuinely large board.
+ const sideBySide=width>=665&&height>=410&&width/height>1.12;
  area.classList.toggle('puzzle-side',sideBySide);
- const tray=$('tray');
  let cols,rows,boardPx,waitingPx;
  if(sideBySide){
-  cols=gridSize;rows=gridSize;
-  boardPx=Math.floor(Math.min(680,height-38,width-125, width*.76));
-  const sideWidth=width-boardPx-gap-4;
-  const cell=(boardPx-8)/gridSize;
-  waitingPx=Math.floor(Math.min(cell,(sideWidth-8)/cols,(height-46)/rows));
+  rows=gridSize;cols=gridSize;
+  const rightReserve=Math.max(140,Math.min(210,width*.22));
+  boardPx=Math.floor(Math.min(height-38,width-rightReserve-8,760));
+  const sideWidth=width-boardPx-8;
+  waitingPx=Math.floor(Math.min((boardPx-8)/gridSize,Math.max(22,(sideWidth-4)/cols),Math.max(22,(height-44)/rows),106));
  }else{
   rows=count<=16?2:3;
   cols=Math.ceil(count/rows);
-  const minimumWaiting= Math.min(40,Math.floor((width-8)/cols));
-  boardPx=Math.floor(Math.min(680,width,height-36-gap-rows*minimumWaiting));
-  const cell=(boardPx-8)/gridSize;
-  waitingPx=Math.floor(Math.min(112,cell,(width-8)/cols,(height-boardPx-36-gap)/rows));
+  // The board owns the screen width. The tray can use small, unscaled tiles;
+  // grabbing one expands it to the board's cell size.
+  const waitingMax=Math.floor(Math.min(76,(width-4)/cols));
+  const trayHeight=rows*waitingMax+8;
+  boardPx=Math.floor(Math.min(width,height-trayHeight-28,760));
+  waitingPx=Math.floor(Math.min((boardPx-8)/gridSize,(width-4)/cols,(height-boardPx-28)/rows,76));
  }
  boardPx=Math.max(90,boardPx);
- waitingPx=Math.max(12,waitingPx);
+ waitingPx=Math.max(11,waitingPx);
  area.style.setProperty('--puzzle-piece-size',waitingPx+'px');
  area.style.setProperty('--puzzle-board-size',boardPx+'px');
+ area.style.setProperty('--puzzle-layout-mode',sideBySide?'side':'bottom');
+ const tray=$('tray');
  tray.style.setProperty('--tray-cols',cols);
  tray.style.setProperty('--tray-rows',rows);
 }
