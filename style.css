@@ -311,3 +311,30 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
  #game .reference img{width:58px!important;height:58px!important;max-width:58px!important;aspect-ratio:1!important;border-width:2px!important}
  #game .game-area{grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important}
 }
+
+/* iPad: give the puzzle nearly all available height, with a separate side tray. */
+#game .game-area.puzzle-side{
+ display:grid!important;
+ grid-template-columns:var(--puzzle-board-size) minmax(0,1fr)!important;
+ grid-template-rows:28px minmax(0,1fr)!important;
+ column-gap:10px!important;
+ align-items:start!important;
+ justify-content:center!important;
+ align-content:start!important;
+}
+#game .game-area.puzzle-side>.tag{
+ grid-column:1!important;grid-row:1!important;
+ justify-self:center!important;align-self:center!important;
+ margin:0!important;
+}
+#game .game-area.puzzle-side>.board{
+ grid-column:1!important;grid-row:2!important;
+ justify-self:center!important;align-self:start!important;
+ margin:0!important;
+}
+#game .game-area.puzzle-side>.tray{
+ grid-column:2!important;grid-row:2!important;
+ align-self:center!important;justify-self:center!important;
+ margin:0 auto!important;
+ gap:1px!important;
+}
