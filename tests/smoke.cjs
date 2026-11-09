@@ -54,6 +54,13 @@ const { chromium } = require('playwright');
       katakana=true;kanaSayUnit('きゃ');
     }finally{say=original;katakana=false;}
     if(JSON.stringify(spoken)!==JSON.stringify(['きゃ','しゃ','しゅ','キャ']))throw Error('Compound kana pronounced with extra words: '+JSON.stringify(spoken));
+    // The "よむ" button must remain functional after removing the examples.
+    kanaUnits=['しゃ'];
+    const spoken2=[];
+    const savedSay=say;
+    try{say=v=>spoken2.push(v);document.getElementById('kanaPlay').click();}
+    finally{say=savedSay;kanaUnits=[];}
+    if(spoken2.length!==1||!spoken2[0].startsWith('しゃ'))throw Error('Kana read-aloud button is broken: '+JSON.stringify(spoken2));
   });
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
   await page.evaluate(async()=>{
