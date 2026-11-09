@@ -1,17 +1,17 @@
 'use strict';
-const $=id=>document.getElementById(id);const screens=['home','gallery','difficulty','game','parent','colorGallery','coloring','colorParent','kana','traceMenu','traceGallery','tracing','traceParent'];let screen='home',images=[],current=null,placed=new Set(),order=[],hint=false,db=null,audio=null,drag=null,lockTimer=null,gridSize=3,selectedImage=null;
+const $=id=>document.getElementById(id);const screens=['home','gallery','difficulty','game','parent','colorGallery','coloring','colorParent','kana','traceMenu','traceGallery','tracing','traceParent'];let screen='home',images=[],current=null,placed=new Set(),order=[],hint=false,db=null,audio=null,drag=null,lockTimer=null,gridSize=3,selectedImage=null,puzzleMode='normal',slideTiles=[],slideEmpty=-1,slideMoves=0;
 const DB='asobi-land-v1';
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('pictures',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function transact(mode,callback){return new Promise((resolve,reject)=>{const t=db.transaction('pictures',mode);const store=t.objectStore('pictures');let req=callback(store);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
 async function refresh(){images=await transact('readonly',s=>s.getAll());images.sort((a,b)=>a.created-b.created);renderGallery();renderManage()}
-function show(name){screen=name;screens.forEach(s=>$(s).classList.toggle('hidden',s!==name));$('back').classList.toggle('hidden',name==='home');$('reset').classList.toggle('hidden',name!=='game');$('hint').classList.toggle('hidden',name!=='game');$('lock').classList.toggle('hidden',!['gallery','colorGallery','traceGallery'].includes(name));$('title').textContent=({home:'あそびランド',gallery:'パズルを えらぼう',difficulty:'むずかしさを えらぼう',game:`${gridSize*gridSize}ピース パズル`,parent:'おうちのひと',colorGallery:'ぬりえ',coloring:'ぬりえ',colorParent:'ぬりえの とうろく',kana:'あいうえお',traceMenu:'なぞりがき',traceGallery:'なぞりがき',tracing:'なぞりがき',traceParent:'じゆうなぞりの とうろく'})[name];if(name!=='game')clearHint()}
+function show(name){screen=name;screens.forEach(s=>$(s).classList.toggle('hidden',s!==name));$('back').classList.toggle('hidden',name==='home');$('reset').classList.toggle('hidden',name!=='game');$('hint').classList.toggle('hidden',name!=='game');$('lock').classList.toggle('hidden',!['gallery','colorGallery','traceGallery'].includes(name));$('title').textContent=({home:'あそびランド',gallery:'パズルを えらぼう',difficulty:'むずかしさを えらぼう',game:puzzleMode==='slide'?`${gridSize}×${gridSize} スライドパズル`:`${gridSize*gridSize}ピース パズル`,parent:'おうちのひと',colorGallery:'ぬりえ',coloring:'ぬりえ',colorParent:'ぬりえの とうろく',kana:'あいうえお',traceMenu:'なぞりがき',traceGallery:'なぞりがき',tracing:'なぞりがき',traceParent:'じゆうなぞりの とうろく'})[name];if(name!=='game')clearHint()}
 function goBack(){if(screen==='game')show('difficulty');else if(screen==='difficulty'||screen==='parent')show('gallery');else if(screen==='gallery'||screen==='colorGallery'||screen==='traceMenu')show('home');else if(screen==='coloring')show('colorGallery');else if(screen==='colorParent')show('colorGallery');else if(screen==='kana')show('home');else if(screen==='traceGallery')show('traceMenu');else if(screen==='tracing')show('traceGallery');else if(screen==='traceParent')show('traceGallery')}
 function renderGallery(){const root=$('tiles');root.replaceChildren();$('empty').classList.toggle('hidden',images.length>0);images.forEach(im=>{const b=document.createElement('button');b.className='tile';const img=document.createElement('img');img.src=im.data;img.alt='パズル';b.append(img);b.onclick=()=>{selectedImage=im;show('difficulty')};root.append(b)})}
 function renderManage(){const root=$('manage');root.replaceChildren();images.forEach(im=>{const tile=document.createElement('div');tile.className='tile';const img=document.createElement('img');img.src=im.data;const del=document.createElement('button');del.className='delete';del.textContent='×';del.setAttribute('aria-label','画像を削除');del.onclick=async()=>{if(confirm('このパズルを けしてもいい？')){await transact('readwrite',s=>s.delete(im.id));await refresh()}};tile.append(img,del);root.append(tile)})}
 function shuffled(){const count=gridSize*gridSize;const arr=Array.from({length:count},(_,i)=>i);for(let i=count-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
 function position(i){return `${(i%gridSize)*100/(gridSize-1)}% ${Math.floor(i/gridSize)*100/(gridSize-1)}%`}
-document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);if(selectedImage)startGame(selectedImage)}));
-function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
+document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);puzzleMode=btn.dataset.mode==='slide'?'slide':'normal';if(selectedImage)startGame(selectedImage)}));
+function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();document.getElementById('game').classList.toggle('slide-game',puzzleMode==='slide');$('slideInfo').hidden=puzzleMode!=='slide';$('tray').hidden=puzzleMode==='slide';if(puzzleMode==='slide')newSlideBoard();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
 function puzzleTrayShape(){
  const count=gridSize*gridSize;
  const rows=count<=16?2:3;
@@ -30,10 +30,14 @@ function fitPuzzleLayout(){
  const height=Math.max(90,Math.min(r.height,vh-r.top-6));
  // On landscape tablets reserve only a narrow strip for the picture example,
  // then put the loose-piece tray beside a genuinely large board.
- const sideBySide=width>=665&&height>=410&&width/height>1.12;
+ const sideBySide=puzzleMode!=='slide'&&width>=665&&height>=410&&width/height>1.12;
  area.classList.toggle('puzzle-side',sideBySide);
  let cols,rows,boardPx,waitingPx;
- if(sideBySide){
+ if(puzzleMode==='slide'){
+  rows=0;cols=0;
+  boardPx=Math.floor(Math.min(width,height-40,820));
+  waitingPx=0;
+ }else if(sideBySide){
   rows=gridSize;cols=gridSize;
   const rightReserve=Math.max(140,Math.min(210,width*.22));
   boardPx=Math.floor(Math.min(height-38,width-rightReserve-8,760));
@@ -59,14 +63,68 @@ function fitPuzzleLayout(){
  tray.style.setProperty('--tray-rows',rows);
 }
 window.addEventListener('resize',()=>requestAnimationFrame(fitPuzzleLayout));
-function renderBoard(){const root=$('cells');root.replaceChildren();root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;$('board').style.setProperty('--grid-size',gridSize);for(let i=0;i<gridSize*gridSize;i++){const el=document.createElement('div');el.className='cell';el.dataset.index=i;if(placed.has(i)){el.style.backgroundImage=`url(${current.data})`;el.style.backgroundPosition=position(i)}root.append(el)}}
-function renderTray(){const root=$('tray');root.replaceChildren();root.style.setProperty('--grid-size',gridSize);const layout=puzzleTrayShape();root.style.setProperty('--tray-cols',layout.cols);root.style.setProperty('--tray-rows',layout.rows);order.forEach(i=>{const slot=document.createElement('div');slot.className='slot';if(!placed.has(i)){const piece=document.createElement('div');piece.className='piece';piece.dataset.index=i;piece.style.backgroundImage=`url(${current.data})`;piece.style.backgroundPosition=position(i);piece.addEventListener('pointerdown',startDrag);slot.append(piece)}root.append(slot)})}
+// Starting from the solved arrangement and taking only legal blank moves
+// ensures every randomized slide puzzle is solvable.
+function newSlideBoard(){
+ const total=gridSize*gridSize;
+ slideTiles=Array.from({length:total},(_,i)=>i===total-1?-1:i);
+ slideEmpty=total-1;slideMoves=0;
+ let previous=-1;
+ const steps=gridSize===2?25:gridSize===3?90:gridSize===4?180:280;
+ for(let k=0;k<steps;k++){
+  const adjacent=slideNeighbours(slideEmpty).filter(i=>i!==previous);
+  const opts=adjacent.length?adjacent:slideNeighbours(slideEmpty);
+  const target=opts[Math.floor(Math.random()*opts.length)];
+  const oldEmpty=slideEmpty;
+  slideTiles[oldEmpty]=slideTiles[target];slideTiles[target]=-1;
+  slideEmpty=target;previous=oldEmpty;
+ }
+ if(slideSolved()){
+  const target=slideNeighbours(slideEmpty)[0];
+  slideTiles[slideEmpty]=slideTiles[target];slideTiles[target]=-1;slideEmpty=target;
+ }
+}
+function slideNeighbours(i){
+ const col=i%gridSize,row=Math.floor(i/gridSize),list=[];
+ if(col>0)list.push(i-1);if(col<gridSize-1)list.push(i+1);
+ if(row>0)list.push(i-gridSize);if(row<gridSize-1)list.push(i+gridSize);
+ return list;
+}
+function slideSolved(){return slideTiles.every((value,i)=>value===(i===slideTiles.length-1?-1:i));}
+function slideMove(index){
+ if(puzzleMode!=='slide'||screen!=='game'||!slideNeighbours(slideEmpty).includes(index))return false;
+ slideTiles[slideEmpty]=slideTiles[index];slideTiles[index]=-1;slideEmpty=index;slideMoves++;
+ puzzleClick('release');renderBoard();
+ if(slideSolved())setTimeout(()=>{if(screen==='game'&&slideSolved())complete()},420);
+ return true;
+}
+function renderBoard(){const root=$('cells');root.replaceChildren();if(puzzleMode==='slide'){renderSlideBoard();return;}root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;$('board').style.setProperty('--grid-size',gridSize);for(let i=0;i<gridSize*gridSize;i++){const el=document.createElement('div');el.className='cell';el.dataset.index=i;if(placed.has(i)){el.style.backgroundImage=`url(${current.data})`;el.style.backgroundPosition=position(i)}root.append(el)}}
+function renderSlideBoard(){
+ const root=$('cells');
+ root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;
+ root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;
+ $('board').style.setProperty('--grid-size',gridSize);
+ slideTiles.forEach((tile,i)=>{
+  const btn=document.createElement('button');btn.type='button';
+  btn.className='cell slide-cell'+(tile<0?' slide-blank':'');
+  btn.dataset.index=i;btn.dataset.tile=tile;
+  if(tile>=0){
+   btn.style.backgroundImage=`url(${current.data})`;
+   btn.style.backgroundPosition=position(tile);
+   btn.setAttribute('aria-label',`ピース ${tile+1}`);
+   if(slideNeighbours(slideEmpty).includes(i))btn.classList.add('slide-movable');
+   btn.onclick=()=>slideMove(i);
+  }else{btn.disabled=true;btn.setAttribute('aria-label','あいている マス');}
+  root.append(btn);
+ });
+}
+function renderTray(){const root=$('tray');if(puzzleMode==='slide'){root.replaceChildren();return;}root.replaceChildren();root.style.setProperty('--grid-size',gridSize);const layout=puzzleTrayShape();root.style.setProperty('--tray-cols',layout.cols);root.style.setProperty('--tray-rows',layout.rows);order.forEach(i=>{const slot=document.createElement('div');slot.className='slot';if(!placed.has(i)){const piece=document.createElement('div');piece.className='piece';piece.dataset.index=i;piece.style.backgroundImage=`url(${current.data})`;piece.style.backgroundPosition=position(i);piece.addEventListener('pointerdown',startDrag);slot.append(piece)}root.append(slot)})}
 function startDrag(e){if(e.button!==0||drag)return;e.preventDefault();const piece=e.currentTarget;const rect=piece.getBoundingClientRect();const clone=$('dragPiece');const cell=$('cells').querySelector('.cell');const size=cell?cell.getBoundingClientRect().width:Math.max(rect.width,rect.height);clone.classList.remove('hidden');clone.style.width=size+'px';clone.style.height=size+'px';clone.style.backgroundImage=piece.style.backgroundImage;clone.style.backgroundPosition=piece.style.backgroundPosition;clone.style.backgroundSize=`${gridSize*100}% ${gridSize*100}%`;drag={id:Number(piece.dataset.index),pointer:e.pointerId,source:piece,size,dx:size/2,dy:size/2};piece.style.opacity='.2';puzzleClick('grab');moveDrag(e);piece.setPointerCapture(e.pointerId)}
 function moveDrag(e){if(!drag||drag.pointer!==e.pointerId)return;const clone=$('dragPiece');clone.style.left=(e.clientX-drag.dx)+'px';clone.style.top=(e.clientY-drag.dy)+'px'}
 function endDrag(e){if(!drag||drag.pointer!==e.pointerId)return;moveDrag(e);const d=drag;drag=null;const a=$('dragPiece').getBoundingClientRect();$('dragPiece').classList.add('hidden');d.source.style.opacity='1';puzzleClick('release');const target=$('cells').querySelector(`[data-index="${d.id}"]`);const b=target.getBoundingClientRect();const x=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));const y=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));const overlap=x*y/(b.width*b.height);if(overlap>=.5){placed.add(d.id);tone(true);renderBoard();renderTray();if(placed.size===gridSize*gridSize)setTimeout(complete,550)}else tone(false)}
 window.addEventListener('pointermove',moveDrag);window.addEventListener('pointerup',endDrag);window.addEventListener('pointercancel',e=>{if(drag&&drag.pointer===e.pointerId){drag.source.style.opacity='1';puzzleClick('release');drag=null;$('dragPiece').classList.add('hidden')}});
-function clearHint(){hint=false;$('board').classList.remove('hinted')}
-function setHint(value){hint=value;$('board').classList.toggle('hinted',value)}
+function clearHint(){hint=false;$('board').classList.remove('hinted','slide-hint')}
+function setHint(value){hint=value;$('board').classList.toggle('hinted',value);if(puzzleMode==='slide')$('board').classList.toggle('slide-hint',value)}
 // Short, distinct puzzle pickup and release sounds. Unlock audio in pointerdown.
 function puzzleClick(kind){
  try{
@@ -85,7 +143,7 @@ function puzzleClick(kind){
  }catch(err){}
 }
 function tone(correct){try{audio??=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const now=audio.currentTime;const notes=correct?[[660,0,.09],[880,.09,.1]]:[[260,0,.12],[190,.11,.12]];notes.forEach(([f,delay,len])=>{const o=audio.createOscillator(),g=audio.createGain();o.type=correct?'sine':'triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,now+delay);g.gain.exponentialRampToValueAtTime(.12,now+delay+.01);g.gain.exponentialRampToValueAtTime(.0001,now+delay+len);o.connect(g).connect(audio.destination);o.start(now+delay);o.stop(now+delay+len+.01)})}catch(e){}}
-function complete(){if(screen!=='game'||placed.size!==gridSize*gridSize)return;$('doneImg').src=current.data;$('complete').classList.remove('hidden');const box=$('confetti');box.replaceChildren();for(let i=0;i<55;i++){const el=document.createElement('span');el.className='confetti';el.textContent=['⭐','✨','🎉','💛','❤️'][i%5];el.style.left=Math.random()*100+'%';el.style.animationDelay=Math.random()*.7+'s';box.append(el)}tone(true);setTimeout(()=>tone(true),180)}
+function complete(){if(screen!=='game'||(puzzleMode==='slide'?!slideSolved():placed.size!==gridSize*gridSize))return;$('doneImg').src=current.data;$('complete').classList.remove('hidden');const box=$('confetti');box.replaceChildren();for(let i=0;i<55;i++){const el=document.createElement('span');el.className='confetti';el.textContent=['⭐','✨','🎉','💛','❤️'][i%5];el.style.left=Math.random()*100+'%';el.style.animationDelay=Math.random()*.7+'s';box.append(el)}tone(true);setTimeout(()=>tone(true),180)}
 $('start').onclick=()=>show('gallery');$('back').onclick=goBack;$('reset').onclick=()=>{if(current)startGame(current)};$('again').onclick=()=>{$('complete').classList.add('hidden');startGame(current)};$('next').onclick=()=>{$('complete').classList.add('hidden');show('gallery')};
 const hintBtn=$('hint');hintBtn.addEventListener('pointerdown',e=>{e.preventDefault();setHint(true);hintBtn.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(ev=>hintBtn.addEventListener(ev,clearHint));hintBtn.addEventListener('contextmenu',e=>e.preventDefault());
 const lock=$('lock');
