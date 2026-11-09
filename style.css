@@ -457,3 +457,17 @@ main>#game:not(.hidden){
 #kana .kana-grid button.kana-mark:disabled:active{
  background:#ece8df!important;color:#9c9891!important;
 }
+
+
+/* Override legacy "always pastel even disabled" styles (v9/v11). */
+#kana #kanaGrid button:disabled,
+#kana #kanaGrid button.kana-special:disabled,
+#kana #kanaGrid button.kana-special:not(.kana-mark):disabled,
+#kana #kanaGrid button.kana-mark:disabled{
+ background:#ece8df!important;
+ color:#9c9891!important;
+ border:3px solid #f5f1eb!important;
+ opacity:.40!important;
+ filter:none!important;
+ box-shadow:none!important;
+}
