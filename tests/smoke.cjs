@@ -87,6 +87,35 @@ const { chromium } = require('playwright');
   await page.evaluate(()=>{state.cone=5;state.mix=false;render()});
   const cone=await page.locator('#coneBack image').getAttribute('href');
   if(!cone?.includes('cone-waffle-cup-raster-back'))throw Error('Wrong waffle cup '+cone);
+  // Test the uploaded, case-sensitive PNG rather than the former SVG asset.
+  const birchSource=await page.evaluate(()=>toppingArt('birch'));
+  if(birchSource!=='topping-birch-high.PNG')throw Error('Birch topping still references old SVG: '+birchSource);
+  await page.evaluate(async()=>{
+    const img=new Image();img.src=toppingArt('birch');await img.decode();
+    if(!img.naturalWidth||!img.naturalHeight)throw Error('Birch PNG cannot render');
+  });
+  // Touch one choice while another topping is selected; only one tap may be required.
+  await page.evaluate(()=>{step=4;decors=[];activeToppingId=null;render();});
+  const clickByTouch=await page.evaluate(()=>{
+    const choices=document.getElementById('choices');
+    const touch=(idx,id)=>{
+      const el=choices.querySelector('[data-choice-index="'+idx+'"]');
+      if(!el)throw Error('No choice '+idx);
+      const rect=el.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2;
+      el.dispatchEvent(new PointerEvent('pointerdown',{pointerType:'touch',pointerId:id,isPrimary:true,bubbles:true,clientX:x,clientY:y}));
+      el.dispatchEvent(new PointerEvent('pointerup',{pointerType:'touch',pointerId:id,isPrimary:true,bubbles:true,cancelable:true,clientX:x,clientY:y}));
+    };
+    touch(6,210);const first=decors.length;
+    touch(0,211);const second=decors.length;
+    return {first,second,src:decors[0]?.src,active:activeToppingId,last:decors[1]?.id};
+  });
+  if(clickByTouch.first!==1||clickByTouch.second!==2||clickByTouch.active!==clickByTouch.last)throw Error('Touch selection requires two taps: '+JSON.stringify(clickByTouch));
+  if(!clickByTouch.src.endsWith('.PNG'))throw Error('Birch chosen as non-PNG: '+clickByTouch.src);
+  // Front visual toppings must be below the cone's front rim in CSS stacking.
+  const z=await page.evaluate(()=>['mainIceSvg','decorLayer','coneLipSvg','toppingPalette'].map(id=>{
+    const el=document.getElementById(id);return {id,z:getComputedStyle(el).zIndex};
+  }));
+  if(!(Number(z[0].z)<Number(z[1].z)&&Number(z[1].z)<Number(z[2].z)))throw Error('Cone front layering is incorrect '+JSON.stringify(z));
   await page.evaluate(()=>{step=4;choose(3);step=0;render()});
   if(await page.locator('#toppingLayerControls').evaluate(e=>getComputedStyle(e).display)==='none')throw Error('Selected topping controls hidden outside topping page');
   if(await page.locator('.decors-layer .decor.active').count()!==1)throw Error('Selected topping outline missing');
