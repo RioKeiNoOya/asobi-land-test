@@ -4,6 +4,9 @@ on:
   push:
     paths:
       - 'tests/smoke.cjs'
+      - 'app.js'
+      - 'style.css'
+      - 'index.html'
       - 'softcream.html'
       - 'softcream-adjust.html'
       - 'katahame.html'
