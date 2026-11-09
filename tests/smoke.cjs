@@ -53,6 +53,22 @@ const { chromium } = require('playwright');
   const after=await page.evaluate(()=>({rx:decors[decors.length-1].rx,ry:decors[decors.length-1].ry}));
   if(Math.abs(after.rx-before.rx)+Math.abs(after.ry-before.ry)<.01)throw Error('Behind-ice topping did not move');
 
+  await page.evaluate(()=>{
+    // After deleting the selected decoration, the bin must remain while others exist.
+    decors=decors.filter(d=>d.id!==activeToppingId);activeToppingId=null;render();
+    if(getComputedStyle(document.getElementById('trashZone')).display==='none')throw Error('Trash vanished after deleting one decoration');
+    // Simulate a two-touch turn/pinch on the cone step, not the decoration step.
+    const d=decors[0];activeToppingId=d.id;step=0;render();
+    const target=document.getElementById('preview');
+    const touch=(id,x,y)=>new Touch({identifier:id,target,clientX:x,clientY:y});
+    const start=[touch(1,100,100),touch(2,150,100)];
+    target.dispatchEvent(new TouchEvent('touchstart',{touches:start,targetTouches:start,changedTouches:start,bubbles:true,cancelable:true}));
+    if(!toppingTwoFingerActive)throw Error('Pinch blocked outside decorations step');
+    const next=[touch(1,95,110),touch(2,170,90)];
+    target.dispatchEvent(new TouchEvent('touchmove',{touches:next,targetTouches:next,changedTouches:next,bubbles:true,cancelable:true}));
+    if(d.scale<=1||Math.abs(d.rotation)<1)throw Error('Pinch did not scale and rotate the selected decoration');
+    target.dispatchEvent(new TouchEvent('touchend',{touches:[],targetTouches:[],changedTouches:next,bubbles:true,cancelable:true}));
+  });
   await page.goto(origin+'softcream-adjust.html',{waitUntil:'load'});
   if(await page.locator('#backCrop').count()!==1)throw Error('Back crop control missing');
   await page.locator('#backCrop').fill('62');
