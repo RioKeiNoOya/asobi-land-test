@@ -87,6 +87,19 @@ const { chromium } = require('playwright');
   await page.locator('.setup .go').click();
   const dims=await page.locator('.tray .piece').evaluateAll(nodes=>nodes.map(n=>{let r=n.getBoundingClientRect();return {w:r.width,h:r.height,x:r.left,right:r.right,top:r.top}}));
   if(dims.length!==4||dims.some(x=>x.w>110||x.h>110||x.x<0||x.right>viewport.width+1))throw Error('Medium shapes oversized '+JSON.stringify({viewport,dims}));
+  await page.locator('.tools button').first().click();
+  await page.locator('[data-lv="9"]').click();
+  await page.locator('.setup .go').click();
+  const puzzle=await page.evaluate(()=>{
+   const b=document.getElementById('board').getBoundingClientRect();
+   const holes=[...document.querySelectorAll('.board .hole')].map(e=>e.getBoundingClientRect());
+   const pieces=[...document.querySelectorAll('.tray .piece')].map(e=>e.getBoundingClientRect());
+   return {b:{left:b.left,right:b.right,top:b.top,bottom:b.bottom}, holes:holes.map(r=>({x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom})),pieces:pieces.map(r=>({x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom}))};
+  });
+  if(puzzle.holes.length!==9||puzzle.pieces.length!==9)throw Error('Challenge must have nine items '+JSON.stringify(puzzle));
+  if(puzzle.pieces.some((p,i)=>Math.abs(p.w-puzzle.holes[i].w)>1||Math.abs(p.h-puzzle.holes[i].h)>1))throw Error('Loose piece and target are not 1:1 '+JSON.stringify({viewport,puzzle}));
+  if(puzzle.holes.some(p=>p.x<puzzle.b.left-1||p.right>puzzle.b.right+1||p.y<puzzle.b.top-1||p.bottom>puzzle.b.bottom+1))throw Error('Puzzle target clipped by board '+JSON.stringify({viewport,puzzle}));
+  if(puzzle.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height+1))throw Error('Puzzle piece outside screen '+JSON.stringify({viewport,puzzle}));
   console.log('PASS',viewport.width,viewport.height,'difficulty / parent / ice / medium puzzle');
   await page.close();
  }
