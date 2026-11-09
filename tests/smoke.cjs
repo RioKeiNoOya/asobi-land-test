@@ -73,7 +73,7 @@ const { chromium } = require('playwright');
       const keys=[...document.querySelectorAll('#kanaGrid button')].filter(x=>!x.dataset.empty);
       const activeDisabled=keys.slice(0,3).map(el=>({background:getComputedStyle(el).backgroundColor,color:getComputedStyle(el).color,opacity:getComputedStyle(el).opacity}));
       const special=document.querySelector('#kanaGrid button.kana-special');
-      if(special){const style=getComputedStyle(special);if(style.backgroundColor!==activeDisabled[0].background||style.opacity!==activeDisabled[0].opacity)throw Error('Disabled small kana differs from regular disabled keys');}
+      if(special){const style=getComputedStyle(special);if(style.backgroundColor!==activeDisabled[0].background||style.opacity!==activeDisabled[0].opacity)throw Error('Disabled small kana differs from regular disabled keys: '+JSON.stringify({special:{background:style.backgroundColor,opacity:style.opacity},regular:activeDisabled[0],text:special.textContent}));}
     }finally{kanaRecording=old;renderKana();}
   });
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
