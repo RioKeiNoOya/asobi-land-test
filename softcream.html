@@ -649,6 +649,8 @@ async function save(){
   await paintDecors('back');
   ctx.drawImage(await svgImage(document.getElementById('mainIceSvg')),0,0,700,1200);
   await paintDecors('front');
+  // The physical front lip of every cone must occlude even front decorations.
+  ctx.drawImage(await svgImage(document.getElementById('coneLipSvg')),0,0,700,1200);
   const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.87));
   if(!blob)throw Error('Could not produce image');
   const file=new File([blob],'softcream.jpg',{type:'image/jpeg'});
