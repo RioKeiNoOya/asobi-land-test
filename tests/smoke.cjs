@@ -39,7 +39,7 @@ const { chromium } = require('playwright');
    await page.mouse.up();
    if(!activeSize)throw Error('Active puzzle piece not rendered');
    if(Math.abs(activeSize.width-layout.cells[0].w)>1||Math.abs(activeSize.height-layout.cells[0].h)>1)throw Error('Active piece does not expand to board cell size '+JSON.stringify({viewport,n,layout,activeSize}));
-   if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height+1))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
+   if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height-2))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
   }
   await page.goto(origin+'index.html',{waitUntil:'load'});
   await page.evaluate(()=>{
