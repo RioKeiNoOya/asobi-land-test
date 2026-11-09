@@ -22,19 +22,33 @@ function fitPuzzleLayout(){
  const area=document.querySelector('#game .game-area');
  if(!area)return;
  const r=area.getBoundingClientRect();
- if(r.width<60||r.height<60)return;
- const {rows,cols}=puzzleTrayShape();
- // The board takes the available square space; loose pieces use a separate
- // wide 2- or 3-row tray so they do not force the board to become tiny.
- const totalWidth=Math.max(60,r.width-12);
- const totalHeight=Math.max(100,r.height-12);
- const gap=8, minWaitingSize=Math.min(34,totalWidth/cols);
- const boardPx=Math.floor(Math.min(520,totalWidth,totalHeight-gap-rows*minWaitingSize));
- const cellPx=(boardPx-8)/gridSize;
- const waitingPx=Math.floor(Math.min(112,cellPx,totalWidth/cols,(totalHeight-boardPx-gap-18)/rows));
- area.style.setProperty('--puzzle-piece-size',Math.max(12,waitingPx)+'px');
- area.style.setProperty('--puzzle-board-size',boardPx+'px');
+ if(r.width<100||r.height<100)return;
+ const width=Math.max(100,r.width-8),height=Math.max(100,r.height-8);
+ const count=gridSize*gridSize,gap=10;
+ // Tablet landscape: the loose-piece tray occupies the right-hand side of
+ // the board, not precious board height. The board can use almost full height.
+ const sideBySide=width>=610&&height>=350;
+ area.classList.toggle('puzzle-side',sideBySide);
  const tray=$('tray');
+ let cols,rows,boardPx,waitingPx;
+ if(sideBySide){
+  cols=gridSize;rows=gridSize;
+  boardPx=Math.floor(Math.min(680,height-38,width-125, width*.76));
+  const sideWidth=width-boardPx-gap-4;
+  const cell=(boardPx-8)/gridSize;
+  waitingPx=Math.floor(Math.min(cell,(sideWidth-8)/cols,(height-46)/rows));
+ }else{
+  rows=count<=16?2:3;
+  cols=Math.ceil(count/rows);
+  const minimumWaiting= Math.min(40,Math.floor((width-8)/cols));
+  boardPx=Math.floor(Math.min(680,width,height-36-gap-rows*minimumWaiting));
+  const cell=(boardPx-8)/gridSize;
+  waitingPx=Math.floor(Math.min(cell,(width-8)/cols,(height-boardPx-36-gap)/rows));
+ }
+ boardPx=Math.max(90,boardPx);
+ waitingPx=Math.max(12,waitingPx);
+ area.style.setProperty('--puzzle-piece-size',waitingPx+'px');
+ area.style.setProperty('--puzzle-board-size',boardPx+'px');
  tray.style.setProperty('--tray-cols',cols);
  tray.style.setProperty('--tray-rows',rows);
 }
