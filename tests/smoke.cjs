@@ -77,6 +77,19 @@ const { chromium } = require('playwright');
       return {success,changed:slideEmpty===good&&slideTiles[previous]===before[good],moves:slideMoves};
     });
     if(!move.success||!move.changed||move.moves!==1)throw Error('Slide tile could not move '+JSON.stringify({viewport,n,move}));
+    // Real drag: tapping alone must not move a physical sliding piece.
+    const position=await page.evaluate(()=>({empty:slideEmpty,neighbor:slideNeighbours(slideEmpty)[0]}));
+    const piece=page.locator('#cells .slide-cell').nth(position.neighbor);
+    const blank=page.locator('#cells .slide-cell').nth(position.empty);
+    const from=await piece.boundingBox(),to=await blank.boundingBox();
+    if(!from||!to)throw Error('Slide gesture targets not visible');
+    const sx=from.x+from.width/2,sy=from.y+from.height/2;
+    await page.mouse.move(sx,sy);await page.mouse.down();await page.mouse.up();await page.waitForTimeout(160);
+    if(await page.evaluate(()=>slideEmpty)!==position.empty)throw Error('Short tap unexpectedly slid a tile');
+    await page.mouse.move(sx,sy);await page.mouse.down();
+    await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:6});
+    await page.mouse.up();await page.waitForTimeout(160);
+    if(await page.evaluate(()=>slideEmpty)!==position.neighbor)throw Error('Finger sliding did not move a tile into the blank');
   }
   await page.goto(origin+'index.html',{waitUntil:'load'});
   await page.evaluate(()=>{
