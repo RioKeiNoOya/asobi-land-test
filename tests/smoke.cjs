@@ -103,6 +103,11 @@ const { chromium } = require('playwright');
   await page.locator('.setup .go').click();
   const dims=await page.locator('.tray .piece').evaluateAll(nodes=>nodes.map(n=>{let r=n.getBoundingClientRect();return {w:r.width,h:r.height,x:r.left,right:r.right,top:r.top}}));
   if(dims.length!==4||dims.some(x=>x.w>110||x.h>110||x.x<0||x.right>viewport.width+1))throw Error('Medium shapes oversized '+JSON.stringify({viewport,dims}));
+  await page.goto(origin+'kana-speech-test.html',{waitUntil:'load'});
+  if(await page.locator('[data-method]').count()!==4)throw Error('SSML comparison options missing');
+  await page.getByRole('button',{name:'しゃ',exact:true}).click();
+  await page.locator('[data-method="ssml"]').click();
+  if(!((await page.locator('#status').textContent())||'').includes('SSML'))throw Error('SSML comparison not triggered');
   console.log('PASS',viewport.width,viewport.height,'difficulty / parent / ice / medium puzzle');
   await page.close();
  }
