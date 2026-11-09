@@ -48,6 +48,36 @@ const { chromium } = require('playwright');
    if(Math.abs(activeSize.width-layout.cells[0].w)>1||Math.abs(activeSize.height-layout.cells[0].h)>1)throw Error('Active piece does not expand to board cell size '+JSON.stringify({viewport,n,layout,activeSize}));
    if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height-2))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
   }
+  // Two puzzle types share the same photo and four difficulty levels.
+  if(await page.locator('#difficulty .difficulty-btn[data-mode="normal"]').count()!==4)throw Error('Normal difficulties missing');
+  if(await page.locator('#difficulty .difficulty-btn[data-mode="slide"]').count()!==4)throw Error('Slide difficulties missing');
+  for(const n of [2,3,4,5]){
+    await page.evaluate(n=>{puzzleMode='slide';gridSize=n;startGame(current);},n);
+    await page.waitForTimeout(100);
+    const sliding=await page.evaluate(()=>{
+      const pieces=[...document.querySelectorAll('#cells .slide-cell')];
+      const board=document.querySelector('#board').getBoundingClientRect();
+      return {mode:puzzleMode,count:pieces.length,blank:pieces.filter(x=>x.classList.contains('slide-blank')).length,
+        movable:pieces.filter(x=>x.classList.contains('slide-movable')).length,
+        board:{w:board.width,h:board.height,x:board.x,right:board.right,bottom:board.bottom},
+        trayHidden:getComputedStyle(document.getElementById('tray')).display==='none',
+        infoVisible:getComputedStyle(document.getElementById('slideInfo')).display!=='none',
+        tiles:slideTiles.slice(),empty:slideEmpty};
+    });
+    if(sliding.mode!=='slide'||sliding.count!==n*n||sliding.blank!==1||!sliding.trayHidden||!sliding.infoVisible)throw Error('Slide board missing '+JSON.stringify({viewport,n,sliding}));
+    if(sliding.movable<2||sliding.movable>4)throw Error('Invalid slide neighbors '+JSON.stringify({viewport,n,sliding}));
+    if(sliding.board.w<Math.min(viewport.width*.8,viewport.height*.55))throw Error('Slide board too small '+JSON.stringify({viewport,n,sliding}));
+    const move=await page.evaluate(()=>{
+      const bad=slideEmpty;
+      const good=slideNeighbours(slideEmpty)[0];
+      const before=slideTiles.slice();
+      if(slideMove(bad)!==false||slideTiles.some((x,i)=>x!==before[i]))throw Error('Blank tapped unexpectedly');
+      const previous=slideEmpty;
+      const success=slideMove(good);
+      return {success,changed:slideEmpty===good&&slideTiles[previous]===before[good],moves:slideMoves};
+    });
+    if(!move.success||!move.changed||move.moves!==1)throw Error('Slide tile could not move '+JSON.stringify({viewport,n,move}));
+  }
   await page.goto(origin+'index.html',{waitUntil:'load'});
   await page.evaluate(()=>{
     if(typeof kanaSayUnit!=='function')throw Error('Missing kana voice handler');
