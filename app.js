@@ -12,24 +12,35 @@ function shuffled(){const count=gridSize*gridSize;const arr=Array.from({length:c
 function position(i){return `${(i%gridSize)*100/(gridSize-1)}% ${Math.floor(i/gridSize)*100/(gridSize-1)}%`}
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);if(selectedImage)startGame(selectedImage)}));
 function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();renderBoard();renderTray();show('game');requestAnimationFrame(fitPuzzleLayout)}
+function puzzleTrayShape(){
+ const count=gridSize*gridSize;
+ const rows=count<=16?2:3;
+ return {rows,cols:Math.ceil(count/rows)};
+}
 function fitPuzzleLayout(){
  if(screen!=='game')return;
  const area=document.querySelector('#game .game-area');
  if(!area)return;
  const r=area.getBoundingClientRect();
  if(r.width<60||r.height<60)return;
- // Give the board priority. Scale the waiting pieces independently only as
- // needed to display the entire tray; dragging returns a piece to cell size.
- const boardPx=Math.floor(Math.max(72,Math.min(520,r.width-12,(r.height-26)*.71)));
+ const {rows,cols}=puzzleTrayShape();
+ // The board takes the available square space; loose pieces use a separate
+ // wide 2- or 3-row tray so they do not force the board to become tiny.
+ const totalWidth=Math.max(60,r.width-12);
+ const totalHeight=Math.max(100,r.height-12);
+ const gap=8, minWaitingSize=Math.min(34,totalWidth/cols);
+ const boardPx=Math.floor(Math.min(520,totalWidth,totalHeight-gap-rows*minWaitingSize));
  const cellPx=(boardPx-8)/gridSize;
- const remaining=Math.max(32,r.height-boardPx-46);
- const trayPx=Math.max(12,Math.floor(Math.min(cellPx,(r.width-12)/gridSize,remaining/gridSize)));
- area.style.setProperty('--puzzle-piece-size',trayPx+'px');
+ const waitingPx=Math.floor(Math.min(cellPx,totalWidth/cols,(totalHeight-boardPx-gap)/rows));
+ area.style.setProperty('--puzzle-piece-size',Math.max(12,waitingPx)+'px');
  area.style.setProperty('--puzzle-board-size',boardPx+'px');
+ const tray=$('tray');
+ tray.style.setProperty('--tray-cols',cols);
+ tray.style.setProperty('--tray-rows',rows);
 }
 window.addEventListener('resize',()=>requestAnimationFrame(fitPuzzleLayout));
 function renderBoard(){const root=$('cells');root.replaceChildren();root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;$('board').style.setProperty('--grid-size',gridSize);for(let i=0;i<gridSize*gridSize;i++){const el=document.createElement('div');el.className='cell';el.dataset.index=i;if(placed.has(i)){el.style.backgroundImage=`url(${current.data})`;el.style.backgroundPosition=position(i)}root.append(el)}}
-function renderTray(){const root=$('tray');root.replaceChildren();root.style.setProperty('--grid-size',gridSize);root.style.setProperty('--tray-cols',gridSize);root.style.setProperty('--tray-rows',gridSize);order.forEach(i=>{const slot=document.createElement('div');slot.className='slot';if(!placed.has(i)){const piece=document.createElement('div');piece.className='piece';piece.dataset.index=i;piece.style.backgroundImage=`url(${current.data})`;piece.style.backgroundPosition=position(i);piece.addEventListener('pointerdown',startDrag);slot.append(piece)}root.append(slot)})}
+function renderTray(){const root=$('tray');root.replaceChildren();root.style.setProperty('--grid-size',gridSize);const layout=puzzleTrayShape();root.style.setProperty('--tray-cols',layout.cols);root.style.setProperty('--tray-rows',layout.rows);order.forEach(i=>{const slot=document.createElement('div');slot.className='slot';if(!placed.has(i)){const piece=document.createElement('div');piece.className='piece';piece.dataset.index=i;piece.style.backgroundImage=`url(${current.data})`;piece.style.backgroundPosition=position(i);piece.addEventListener('pointerdown',startDrag);slot.append(piece)}root.append(slot)})}
 function startDrag(e){if(e.button!==0||drag)return;e.preventDefault();const piece=e.currentTarget;const rect=piece.getBoundingClientRect();const clone=$('dragPiece');const cell=$('cells').querySelector('.cell');const size=cell?cell.getBoundingClientRect().width:Math.max(rect.width,rect.height);clone.classList.remove('hidden');clone.style.width=size+'px';clone.style.height=size+'px';clone.style.backgroundImage=piece.style.backgroundImage;clone.style.backgroundPosition=piece.style.backgroundPosition;clone.style.backgroundSize=`${gridSize*100}% ${gridSize*100}%`;drag={id:Number(piece.dataset.index),pointer:e.pointerId,source:piece,size,dx:size/2,dy:size/2};piece.style.opacity='.2';puzzleClick('grab');moveDrag(e);piece.setPointerCapture(e.pointerId)}
 function moveDrag(e){if(!drag||drag.pointer!==e.pointerId)return;const clone=$('dragPiece');clone.style.left=(e.clientX-drag.dx)+'px';clone.style.top=(e.clientY-drag.dy)+'px'}
 function endDrag(e){if(!drag||drag.pointer!==e.pointerId)return;moveDrag(e);const d=drag;drag=null;const a=$('dragPiece').getBoundingClientRect();$('dragPiece').classList.add('hidden');d.source.style.opacity='1';puzzleClick('release');const target=$('cells').querySelector(`[data-index="${d.id}"]`);const b=target.getBoundingClientRect();const x=Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left));const y=Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top));const overlap=x*y/(b.width*b.height);if(overlap>=.5){placed.add(d.id);tone(true);renderBoard();renderTray();if(placed.size===gridSize*gridSize)setTimeout(complete,550)}else tone(false)}
