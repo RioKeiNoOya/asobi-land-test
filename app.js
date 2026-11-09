@@ -31,7 +31,7 @@ function fitPuzzleLayout(){
  const gap=8, minWaitingSize=Math.min(34,totalWidth/cols);
  const boardPx=Math.floor(Math.min(520,totalWidth,totalHeight-gap-rows*minWaitingSize));
  const cellPx=(boardPx-8)/gridSize;
- const waitingPx=Math.floor(Math.min(cellPx,totalWidth/cols,(totalHeight-boardPx-gap)/rows));
+ const waitingPx=Math.floor(Math.min(112,cellPx,totalWidth/cols,(totalHeight-boardPx-gap-18)/rows));
  area.style.setProperty('--puzzle-piece-size',Math.max(12,waitingPx)+'px');
  area.style.setProperty('--puzzle-board-size',boardPx+'px');
  const tray=$('tray');
