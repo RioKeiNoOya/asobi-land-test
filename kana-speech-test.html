@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>あいうえお 発音比較（保護者用・テスト版）</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#45392d;background:#fff7e9}
+*{box-sizing:border-box}body{max-width:720px;padding:12px 14px 40px;margin:0 auto}a{color:#7d4fbd;font-weight:700}
+h1{font-size:clamp(23px,5vw,29px);margin:16px 0 8px}.intro{line-height:1.6}label{display:block;font-weight:700;margin:14px 0 6px}
+select{font:inherit;padding:11px;background:white;border:1px solid #b7afa4;border-radius:12px;width:100%}
+.options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:14px 0}
+button{font:inherit;border:2px solid #f3cba1;border-radius:16px;background:#fff;min-height:54px;padding:8px 12px;cursor:pointer;font-weight:750}
+button:active{background:#ffe4c8}.sound{font-size:20px} .mode{display:grid;grid-template-columns:1fr;gap:8px}
+.mode button{display:flex;justify-content:space-between;align-items:center;gap:12px;text-align:left}small{font-size:12px;color:#735f55}
+#status{min-height:38px;border-radius:12px;background:#f5eadc;padding:12px;margin-top:14px;line-height:1.5}
+code{word-break:break-all;background:#eee3d7;padding:2px 4px}details{margin-top:18px}
+.info{background:#fff;border:1px solid #e5d4bd;border-radius:12px;padding:10px 14px;line-height:1.65}
+</style></head><body>
+<a href="./index.html">← あそびランド（テスト版）</a>
+<h1>🔊 あいうえお 発音比較</h1>
+<p class="intro">保護者向けの試験ページです。<strong>iPadで実際に鳴った音</strong>を比べてください。現行のあいうえお表の読み上げ設定は変更しません。</p>
+<label for="syllable">試す文字</label>
+<div class="options" id="syllables"></div>
+<label for="voice">日本語の音声</label>
+<select id="voice"><option value="">端末の標準音声（自動）</option></select>
+<label for="rate">速度</label>
+<select id="rate"><option value="0.8">ゆっくり（0.8）</option><option value="0.92" selected>標準（0.92）</option><option value="1">普通（1.0）</option></select>
+<div class="mode">
+<button type="button" data-method="plain"><span>① 文字だけ <small>「きゃ」のように直接発音</small></span><span>▶</span></button>
+<button type="button" data-method="spaced"><span>② 単語ではなく発音補助 <small>かなを短い間隔で指定</small></span><span>▶</span></button>
+<button type="button" data-method="ssml"><span>③ SSML・IPA <small>発音記号を指定（Safariでは未保証）</small></span><span>▶</span></button>
+<button type="button" data-method="sample"><span>④ いまの例単語方式 <small>比較用：きゃべつ、しゃしんなど</small></span><span>▶</span></button>
+<button type="button" id="stop"><span>■ とめる</span></button>
+</div>
+<div id="status" role="status" aria-live="polite">文字を選んで、①〜④を押してください。</div>
+<details><summary>技術的な確認ポイント</summary><div class="info">
+<p>③は <code>&lt;phoneme alphabet="ipa" ph="…" /&gt;</code> を含むSSMLを、Web Speech APIに渡します。日本語の発音になる／無音になる／タグを読み上げる、いずれもあり得ます。</p>
+<p>ここで再生できた場合も、iPadの機種・iOSバージョン・選んだ声によって結果が変わる可能性があります。</p>
+</div></details>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+const samples={
+ 'きゃ':{ipa:'kʲa',example:'きゃべつ'},'きゅ':{ipa:'kʲɯ',example:'きゅうり'},
+ 'しゃ':{ipa:'ɕa',example:'しゃしん'},'しゅ':{ipa:'ɕɯ',example:'しゅくだい'},
+ 'しょ':{ipa:'ɕo',example:'しょくぱん'},'ちゃ':{ipa:'tɕa',example:'おちゃ'},
+ 'じゃ':{ipa:'dʑa',example:'じゃがいも'}
+};
+let active='きゃ';let voices=[];
+function showSelection(){
+ $('syllables').innerHTML='';
+ for(const key of Object.keys(samples)){
+  const btn=document.createElement('button');btn.textContent=key;btn.className='sound';btn.setAttribute('aria-pressed',String(key===active));
+  btn.style.background=key===active?'#ffc985':'white';btn.onclick=()=>{active=key;showSelection();$('status').textContent='「'+key+'」を選択しました。'};$('syllables').append(btn);
+ }
+}
+function listVoices(){
+ if(!('speechSynthesis' in window))return;
+ voices=speechSynthesis.getVoices().filter(v=>v.lang.toLowerCase().startsWith('ja'));
+ const current=$('voice').value;
+ $('voice').innerHTML='<option value="">端末の標準音声（自動）</option>';
+ voices.forEach((v,i)=>{const opt=document.createElement('option');opt.value=String(i);opt.textContent=v.name+'（'+v.lang+'）';$('voice').append(opt)});
+ if([...$('voice').options].some(o=>o.value===current))$('voice').value=current;
+}
+function speak(method){
+ if(!('speechSynthesis' in window)){$('status').textContent='このブラウザは読み上げ機能に対応していません。';return}
+ speechSynthesis.cancel();
+ const item=samples[active];
+ let spoken=active;
+ if(method==='spaced')spoken=active+'。';
+ if(method==='ssml')spoken='<speak xml:lang="ja-JP"><phoneme alphabet="ipa" ph="'+item.ipa+'">'+active+'</phoneme></speak>';
+ if(method==='sample')spoken=item.example;
+ const utterance=new SpeechSynthesisUtterance(spoken);
+ utterance.lang='ja-JP';utterance.rate=Number($('rate').value);utterance.pitch=1;
+ if($('voice').value!=='')utterance.voice=voices[Number($('voice').value)]||null;
+ const label={plain:'① 文字だけ',spaced:'② 発音補助',ssml:'③ SSML・IPA',sample:'④ 例単語'}[method];
+ $('status').textContent=label+'／「'+active+'」を再生します。'+(method==='ssml'?' タグをそのまま読む場合は非対応です。':'');
+ utterance.onerror=e=>{$('status').textContent=label+'：読み上げエラー（'+e.error+'）。'};
+ utterance.onend=()=>{$('status').textContent=label+'：再生終了。どう聞こえたかを確認してください。'};
+ setTimeout(()=>speechSynthesis.speak(utterance),100);
+}
+document.querySelectorAll('[data-method]').forEach(b=>b.addEventListener('click',()=>speak(b.dataset.method)));
+$('stop').onclick=()=>{speechSynthesis.cancel();$('status').textContent='停止しました。'};
+if('speechSynthesis' in window){listVoices();speechSynthesis.onvoiceschanged=listVoices}
+showSelection();
+</script></body></html>
