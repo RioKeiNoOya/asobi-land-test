@@ -162,7 +162,7 @@ function kanaReadingText(s){
  // Avoid interpreting a standalone は as the topic particle in this name.
  return expanded.replace(/ふなはし/g,'ふな、はし');
 }
-$('kanaPlay').onclick=()=>{const str=kanaString();if(str){const example=kanaCompoundExamples[toHira(str)];say(example?kanaValue(example):kanaReadingText(str))}};
+$('kanaPlay').onclick=()=>{const str=kanaString();if(str)say(kanaReadingText(str));};
 $('kanaSound').onclick=()=>{speakEnabled=!speakEnabled;if(!speakEnabled)speechSynthesis?.cancel();kanaRefresh()};
 const kanaSpeechCommon={
  '今日は':'こんにちは','今日':'きょう','明日':'あした','昨日':'きのう',
