@@ -22,7 +22,7 @@ function fitPuzzleLayout(){
  // needed to display the entire tray; dragging returns a piece to cell size.
  const boardPx=Math.floor(Math.max(72,Math.min(520,r.width-12,(r.height-26)*.71)));
  const cellPx=(boardPx-8)/gridSize;
- const remaining=Math.max(44,r.height-boardPx-20);
+ const remaining=Math.max(32,r.height-boardPx-46);
  const trayPx=Math.max(12,Math.floor(Math.min(cellPx,(r.width-12)/gridSize,remaining/gridSize)));
  area.style.setProperty('--puzzle-piece-size',trayPx+'px');
  area.style.setProperty('--puzzle-board-size',boardPx+'px');
