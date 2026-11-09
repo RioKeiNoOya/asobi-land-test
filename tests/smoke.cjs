@@ -32,6 +32,17 @@ const { chromium } = require('playwright');
    if(layout.pieces.some((p,i)=>Math.abs(p.w-layout.cells[i].w)>1||Math.abs(p.h-layout.cells[i].h)>1))throw Error('Picture puzzle pieces not 1:1 '+JSON.stringify({viewport,n,layout}));
    if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height+1))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
   }
+  await page.goto(origin+'index.html',{waitUntil:'load'});
+  await page.evaluate(()=>{
+    if(typeof kanaSayUnit!=='function')throw Error('Missing kana voice handler');
+    const original=say,spoken=[];
+    try{
+      say=text=>spoken.push(text);
+      katakana=false;kanaSayUnit('きゃ');kanaSayUnit('しゃ');kanaSayUnit('しゅ');
+      katakana=true;kanaSayUnit('きゃ');
+    }finally{say=original;katakana=false;}
+    if(JSON.stringify(spoken)!==JSON.stringify(['きゃ','しゃ','しゅ','キャ']))throw Error('Compound kana pronounced with extra words: '+JSON.stringify(spoken));
+  });
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
   await page.evaluate(async()=>{
    const files=['soft-round.png','soft-classic.png','soft-fine.png','cone-waffle-cup-raster.png'];
