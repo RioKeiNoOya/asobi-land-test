@@ -299,3 +299,15 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
 
 /* Allow the picture puzzle on portrait devices without covering the board. */
 @media(orientation:portrait){#game:before{content:none!important;display:none!important}}
+
+/* Picture-puzzle board stays large; loose tiles may be smaller until lifted. */
+#game .tray{justify-content:center!important;margin-top:8px!important}
+#game .game-area{overflow:hidden!important}
+#game .drag-piece{will-change:left,top}
+@media (max-width:700px) and (orientation:portrait){
+ #game .play-layout{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:64px minmax(0,1fr)!important;gap:2px!important}
+ #game .reference{height:64px!important;display:flex!important;flex-direction:row!important;gap:10px!important;padding:0 8px!important;align-items:center!important;justify-content:flex-start!important;overflow:hidden!important}
+ #game .reference .tag{font-size:13px!important;margin:0!important;white-space:nowrap}
+ #game .reference img{width:58px!important;height:58px!important;max-width:58px!important;aspect-ratio:1!important;border-width:2px!important}
+ #game .game-area{grid-column:1!important;grid-row:2!important;width:100%!important;height:100%!important}
+}
