@@ -29,6 +29,8 @@ const { chromium } = require('playwright');
     return {board:{x:board.x,y:board.y,w:board.width,h:board.height},tray:{x:tray.x,y:tray.y,w:tray.width,h:tray.height},cells:cells.map(r=>({w:r.width,h:r.height})),pieces:pieces.map(r=>({x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom}))};
    });
    if(layout.pieces.length!==n*n)throw Error('Missing picture tiles '+JSON.stringify({viewport,n,layout}));
+   const rows=await page.locator('#game .tray').evaluate(el=>getComputedStyle(el).gridTemplateRows.split(' ').length);
+   if(rows!==(n===5?3:2))throw Error('Picture tray should use two or three rows '+JSON.stringify({viewport,n,rows,layout}));
    if(layout.pieces.some((p,i)=>Math.abs(p.w-p.h)>1||p.w>layout.cells[i].w+1||p.w<10))throw Error('Waiting tiles have incorrect aspect ratio or size '+JSON.stringify({viewport,n,layout}));
    if(layout.board.w<Math.min(viewport.width*.50,viewport.height*.50))throw Error('Picture board became too small '+JSON.stringify({viewport,n,layout}));
    const tileRect=await page.locator('#game .tray .piece').first().boundingBox();
