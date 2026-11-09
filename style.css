@@ -285,3 +285,14 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
 #kanaDictation{min-width:0;flex:1;border:2px solid #e8ad79;border-radius:8px;font-size:16px;padding:7px;-webkit-user-select:text;user-select:text}
 #kanaDictationAdd{background:#ffcf6c;padding:7px 12px}
 #kanaStatus{min-height:18px;font-size:13px}
+
+
+/* Picture puzzle: exact 1:1 tile size, with the entire loose grid visible. */
+#game .game-area{--puzzle-piece-size:56px;--puzzle-board-size:232px;min-width:0;min-height:0!important;overflow:hidden!important;display:flex!important;flex-direction:column!important;align-items:center!important}
+#game .board{box-sizing:border-box!important;flex:0 0 auto!important;width:var(--puzzle-board-size)!important;height:var(--puzzle-board-size)!important;aspect-ratio:1!important;max-width:100%!important;min-height:0!important}
+#game .tray{box-sizing:border-box!important;position:relative!important;flex:0 0 auto!important;display:grid!important;grid-template-columns:repeat(var(--grid-size,3),var(--puzzle-piece-size))!important;grid-template-rows:repeat(var(--grid-size,3),var(--puzzle-piece-size))!important;width:max-content!important;max-width:100%!important;height:max-content!important;min-height:0!important;max-height:none!important;overflow:visible!important;gap:0!important;padding:0!important;margin:8px auto 0!important;align-content:start!important;justify-items:stretch!important}
+#game .tray .slot{box-sizing:border-box!important;width:var(--puzzle-piece-size)!important;height:var(--puzzle-piece-size)!important;min-width:0!important;min-height:0!important;display:grid!important;place-items:center!important}
+#game .tray .piece{box-sizing:border-box!important;width:var(--puzzle-piece-size)!important;height:var(--puzzle-piece-size)!important;min-width:0!important;min-height:0!important;max-width:none!important;max-height:none!important;aspect-ratio:1!important;border-width:1px!important;border-radius:2px!important;flex:none!important}
+#game .cell{box-sizing:border-box!important;aspect-ratio:auto!important;min-width:0!important;min-height:0!important}
+#game #cells{width:100%!important;height:100%!important}
+#game .drag-piece{box-sizing:border-box!important;border-width:1px!important;border-radius:2px!important}
