@@ -495,3 +495,9 @@ main>#game:not(.hidden){
 #game.slide-game .slide-cell.slide-movable{cursor:pointer;box-shadow:inset 0 0 0 1px #fffc}
 #game.slide-game .slide-cell.slide-blank{background:none!important;background-color:#a2c9e3!important;border:2px dashed #d6eafb!important;cursor:default}
 #game.slide-game .board.slide-hint .slide-movable{box-shadow:inset 0 0 0 4px #ffe26a!important}
+
+/* Physical sliding motion: only the neighbor of the blank can move. */
+#game.slide-game .slide-cell{touch-action:none!important;-webkit-user-select:none!important;user-select:none!important}
+#game.slide-game .slide-cell.slide-movable{cursor:grab;position:relative;z-index:1}
+#game.slide-game .slide-cell.slide-moving{cursor:grabbing;z-index:4;box-shadow:0 4px 12px #35678a55!important}
+#game.slide-game .slide-cell.slide-ready{box-shadow:0 4px 13px #35678a77!important}
