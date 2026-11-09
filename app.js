@@ -11,7 +11,7 @@ function renderManage(){const root=$('manage');root.replaceChildren();images.for
 function shuffled(){const count=gridSize*gridSize;const arr=Array.from({length:count},(_,i)=>i);for(let i=count-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
 function position(i){return `${(i%gridSize)*100/(gridSize-1)}% ${Math.floor(i/gridSize)*100/(gridSize-1)}%`}
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);puzzleMode=btn.dataset.mode==='slide'?'slide':'normal';if(selectedImage)startGame(selectedImage)}));
-function startGame(im){current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();document.getElementById('game').classList.toggle('slide-game',puzzleMode==='slide');$('slideInfo').hidden=puzzleMode!=='slide';$('tray').hidden=puzzleMode==='slide';if(puzzleMode==='slide')newSlideBoard();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
+function startGame(im){slideGesture=null;slideAnimating=false;current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();document.getElementById('game').classList.toggle('slide-game',puzzleMode==='slide');$('slideInfo').hidden=puzzleMode!=='slide';$('tray').hidden=puzzleMode==='slide';if(puzzleMode==='slide')newSlideBoard();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
 function puzzleTrayShape(){
  const count=gridSize*gridSize;
  const rows=count<=16?2:3;
@@ -91,6 +91,53 @@ function slideNeighbours(i){
  return list;
 }
 function slideSolved(){return slideTiles.every((value,i)=>value===(i===slideTiles.length-1?-1:i));}
+let slideGesture=null,slideAnimating=false;
+function slideDirection(index){
+ if(!slideNeighbours(slideEmpty).includes(index))return null;
+ const dx=(slideEmpty%gridSize)-(index%gridSize);
+ const dy=Math.floor(slideEmpty/gridSize)-Math.floor(index/gridSize);
+ return {dx,dy};
+}
+function beginSlide(e){
+ if(e.button!==0||slideAnimating||slideGesture||puzzleMode!=='slide')return;
+ const btn=e.currentTarget,index=Number(btn.dataset.index),direction=slideDirection(index);
+ if(!direction)return;
+ e.preventDefault();
+ const r=btn.getBoundingClientRect();
+ slideGesture={id:e.pointerId,index,btn,dx:direction.dx,dy:direction.dy,
+  x:e.clientX,y:e.clientY,extent:direction.dx?r.width:r.height,progress:0};
+ btn.setPointerCapture(e.pointerId);
+ btn.classList.add('slide-moving');
+}
+function moveSlide(e){
+ const g=slideGesture;if(!g||g.id!==e.pointerId)return;
+ e.preventDefault();
+ const along=(e.clientX-g.x)*g.dx+(e.clientY-g.y)*g.dy;
+ const sideways=(e.clientX-g.x)*g.dy-(e.clientY-g.y)*g.dx;
+ // The physical tile is constrained to its rail; sideways motion never moves it.
+ const amount=Math.max(0,Math.min(g.extent,along));
+ g.progress=amount;
+ g.btn.style.transform='translate('+g.dx*amount+'px,'+g.dy*amount+'px)';
+ g.btn.classList.toggle('slide-ready',amount>=g.extent*.25);
+}
+function finishSlide(e,cancel=false){
+ const g=slideGesture;if(!g||g.id!==e.pointerId)return;
+ moveSlide(e);
+ slideGesture=null;
+ const commit=!cancel&&g.progress>=g.extent*.25;
+ slideAnimating=commit;
+ g.btn.style.transition='transform 115ms ease-out';
+ const distance=commit?g.extent:0;
+ g.btn.style.transform='translate('+g.dx*distance+'px,'+g.dy*distance+'px)';
+ g.btn.classList.remove('slide-ready');
+ window.setTimeout(()=>{
+  g.btn.style.transition='';
+  g.btn.style.transform='';
+  g.btn.classList.remove('slide-moving');
+  if(commit&&puzzleMode==='slide'&&screen==='game')slideMove(g.index);
+  slideAnimating=false;
+ },125);
+}
 function slideMove(index){
  if(puzzleMode!=='slide'||screen!=='game'||!slideNeighbours(slideEmpty).includes(index))return false;
  slideTiles[slideEmpty]=slideTiles[index];slideTiles[index]=-1;slideEmpty=index;slideMoves++;
@@ -113,7 +160,12 @@ function renderSlideBoard(){
    btn.style.backgroundPosition=position(tile);
    btn.setAttribute('aria-label',`ピース ${tile+1}`);
    if(slideNeighbours(slideEmpty).includes(i))btn.classList.add('slide-movable');
-   btn.onclick=()=>slideMove(i);
+   if(slideNeighbours(slideEmpty).includes(i)){
+    btn.addEventListener('pointerdown',beginSlide);
+    btn.addEventListener('pointermove',moveSlide);
+    btn.addEventListener('pointerup',finishSlide);
+    btn.addEventListener('pointercancel',e=>finishSlide(e,true));
+   }
   }else{btn.disabled=true;btn.setAttribute('aria-label','あいている マス');}
   root.append(btn);
  });
