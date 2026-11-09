@@ -1,7 +1,7 @@
 const { chromium } = require('playwright');
 (async () => {
  const browser=await chromium.launch({headless:true,args:['--no-sandbox']});
- for(const viewport of [{width:390,height:844},{width:820,height:1180},{width:1024,height:768}]){
+ for(const viewport of [{width:390,height:844},{width:820,height:1180},{width:1024,height:768},{width:1180,height:820},{width:1366,height:1024}]){
   const page=await browser.newPage({viewport,deviceScaleFactor:1});
   page.on('pageerror',err=>{throw Error('JavaScript error: '+err.message)});
   const origin='http://localhost:8000/';
@@ -30,7 +30,10 @@ const { chromium } = require('playwright');
    });
    if(layout.pieces.length!==n*n)throw Error('Missing picture tiles '+JSON.stringify({viewport,n,layout}));
    const rows=await page.locator('#game .tray').evaluate(el=>getComputedStyle(el).gridTemplateRows.split(' ').length);
-   if(rows!==(n===5?3:2))throw Error('Picture tray should use two or three rows '+JSON.stringify({viewport,n,rows,layout}));
+   const side=await page.locator('#game .game-area').evaluate(el=>el.classList.contains('puzzle-side'));
+   const wantedRows=side?n:(n===5?3:2);
+   if(rows!==wantedRows)throw Error('Incorrect side/bottom piece layout '+JSON.stringify({viewport,n,side,rows,wantedRows,layout}));
+   if(side&&layout.board.w<Math.min(viewport.height*.50,430))throw Error('Tablet puzzle board still too small '+JSON.stringify({viewport,n,layout}));
    if(n===2&&layout.pieces.some(p=>p.w>114))throw Error('Four-piece tray occupies excessive board space '+JSON.stringify({viewport,layout}));
    if(layout.pieces.some((p,i)=>Math.abs(p.w-p.h)>1||p.w>layout.cells[i].w+1||p.w<10))throw Error('Waiting tiles have incorrect aspect ratio or size '+JSON.stringify({viewport,n,layout}));
    if(layout.board.w<Math.min(viewport.width*.50,viewport.height*.50))throw Error('Picture board became too small '+JSON.stringify({viewport,n,layout}));
