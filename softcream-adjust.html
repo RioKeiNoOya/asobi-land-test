@@ -29,9 +29,9 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 <p class="note">彩度・コントラストは画像全体の色調補正です。共通設定では味本来の色を残し、色指定を個別にONにした場合だけ上書きできます。</p></div>
 <div class="panel"><h2>ソースを比較</h2>
 <div class="selectors"><label class="field">ソース<select id="sauceKind"><option value="none">なし</option><option value="chocolate">チョコ</option><option value="white">ホワイトチョコ</option><option value="pink">ピンクチョコ</option><option value="strawberry">いちご</option></select></label>
-<label class="field">デザイン<select id="sauceStyle"><option value="shell">固まるチョコ（共通・半マット）</option><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
+<label class="field">デザイン<select id="sauceStyle"><option value="shell">固まるチョコ（共通・半マット）</option><option value="long-neutral">新・長たれ薄グレーPNG（色替え共通）</option><option value="original">現行PNG画像</option><option value="pen">細いチョコペン風</option><option value="drip">濃厚ドリップ風</option><option value="flow">全面にかけるソース（四角ベース）</option></select></label></div>
 <div class="sliders" id="sauceSliders" style="margin-top:12px"></div>
-<div style="border-top:1px solid #e9ddcf;margin-top:12px;padding-top:12px">
+<div id="sauceShadePanel" style="border-top:1px solid #e9ddcf;margin-top:12px;padding-top:12px">
 <strong>ソース上に重ねるソフトの陰影（試作）</strong>
 <div class="selectors" style="margin:9px 0">
 <label class="field">陰影の合成方法<select id="sauceShadeBlend"><option value="multiply">乗算（陰影が濃い）</option><option value="soft-light">ソフトライト（自然）</option><option value="overlay">オーバーレイ（くっきり）</option><option value="normal">通常（元画像を薄く重ねる）</option></select></label>
@@ -39,7 +39,7 @@ input,textarea,select{ -webkit-user-select:text;user-select:text; }
 </div><div class="sliders" id="shadeSliders"></div>
 <p class="note">濃さ0〜100％で調整できます。0％で陰影なし。ぼかしは0〜6pxで調整可能。ソースのある部分にだけ重ねます。</p>
 </div>
-<p class="note">チョコ・ホワイト・ピンクは共通の半マット画像を色替えします。いちごは従来の別画像を維持します。位置と大きさは上のスライダーで調整してください。</p></div>
+<p class="note">新・長たれは平面ソース自体の自然な濃淡だけで、ソフトの凹凸影は重ねません。<a href="sauce-drip-neutral-long.png" download>新しいベースPNGを見る・保存</a>。チョコ・ホワイト・ピンクを切り替えて確認できます。</p><p class="note">チョコ・ホワイト・ピンクは共通の半マット画像を色替えします。いちごは従来の別画像を維持します。位置と大きさは上のスライダーで調整してください。</p></div>
 <div class="panel"><h2>カラースプレーを比較</h2>
 <div class="selectors"><label class="field">表示<select id="sprinkleStyle"><option value="none">なし</option><option value="original">現行PNG画像</option><option value="fine">細かい粒</option><option value="dense">たっぷりランダム</option></select></label>
 <label class="field" style="justify-content:center"><span>2枚重ね</span><label style="font-size:14px"><input id="sprinkleDouble" type="checkbox"> 重ねて増量する</label></label></div>
@@ -223,13 +223,14 @@ function syncToppings(){
  $('sauceShadeSource').value=data.toppings.sauce.shadeSource;
  $('sauceKind').value=data.toppings.sauce.kind;
  $('sauceStyle').value=data.toppings.sauce.style;
+ $('sauceShadePanel').style.display=data.toppings.sauce.style==='long-neutral'?'none':'block';
  syncCrop();
  $('sprinkleStyle').value=data.toppings.sprinkle.style;
  $('sprinkleDouble').checked=data.toppings.sprinkle.double;
  $('edgeSprinkleEnabled').checked=data.toppings.sprinkle.edge!==false;
 }
 for(const [id,group,key] of [['sauceKind','sauce','kind'],['sauceStyle','sauce','style'],['sprinkleStyle','sprinkle','style']]){
- $(id).addEventListener('change',()=>{data.toppings[group][key]=$(id).value;render();});
+ $(id).addEventListener('change',()=>{data.toppings[group][key]=$(id).value;if(group==='sauce'&&key==='style')$('sauceShadePanel').style.display=$(id).value==='long-neutral'?'none':'block';render();});
 }
 $('sprinkleDouble').addEventListener('change',()=>{data.toppings.sprinkle.double=$('sprinkleDouble').checked;render();});
 $('edgeSprinkleEnabled').addEventListener('change',()=>{data.toppings.sprinkle.edge=$('edgeSprinkleEnabled').checked;render();});
@@ -427,13 +428,23 @@ function drawToppings(p,ext,iceArt){
   const r=adjustedToppingBounds(p,t,false);
   const master=imageTag('sauce-shell-neutral.svg',r);
    const shellMask='<defs><mask id="neutralShellMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" style="mask-type:alpha">'+master+'</mask></defs>';
-   const graphic=t.style==='shell'&&t.kind!=='strawberry'?
+   const graphic=t.style==='long-neutral' && t.kind!=='strawberry'?
+    (()=>{
+      const longBounds={x:r.x-p.w*.12,y:r.y-p.h*.13,w:r.w+p.w*.24,h:r.h+p.h*.18};
+      const rgb=(sauceColors[t.kind]||sauceColors.chocolate)[0].match(/[0-9a-f]{2}/gi).map(v=>parseInt(v,16)/255);
+      // Tint via grayscale luminance, keeping only shading produced by the sauce itself.
+      const rows=rgb.map(c=>[.55*c,0,0,0,.45*c].join(' ')).join(' ')+' 0 0 0 1 0';
+      const id='longSauceTintFilter';
+      return '<defs><filter id="'+id+'" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB"><feColorMatrix type="matrix" values="'+rows+'"/></filter></defs>'+
+      '<g filter="url(#'+id+')">'+imageTag('sauce-drip-neutral-long.png',longBounds)+'</g>';
+    })():
+    t.style==='shell'&&t.kind!=='strawberry'?
     (shellMask+master+'<g mask="url(#neutralShellMask)" style="mix-blend-mode:multiply"><rect x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" fill="'+sauceColors[t.kind][0]+'" opacity=".97"/></g>'):
-    (t.style==='original'||t.style==='shell')&&t.kind!=='pink'?imageTag(sauceFiles[t.kind],{...r}):
+    (t.style==='original'||t.style==='shell'||t.style==='long-neutral')&&t.kind!=='pink'?imageTag(sauceFiles[t.kind],{...r}):
     '<svg x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" viewBox="0 0 250 230" preserveAspectRatio="none">'+svgSauce(t.kind,t.style)+'</svg>';
    // Reuse the original cream texture as an optional low-opacity shading layer.
   // Clip that shading to both the sauce alpha and the scoop silhouette.
-  const shadeOpacity=Math.max(0,Math.min(100,t.shadeOpacity||0))/100;
+  const shadeOpacity=t.style==='long-neutral'?0:Math.max(0,Math.min(100,t.shadeOpacity||0))/100;
   let shading='';
   if(shadeOpacity>0){
     const shadeMask='<mask id="sauceShadeMask" maskUnits="userSpaceOnUse" maskContentUnits="userSpaceOnUse" x="'+r.x+'" y="'+r.y+'" width="'+r.w+'" height="'+r.h+'" style="mask-type:alpha">'+graphic+'</mask>';
