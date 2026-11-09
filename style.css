@@ -296,3 +296,6 @@ input,textarea,select{user-select:text;-webkit-user-select:text}
 #game .cell{box-sizing:border-box!important;aspect-ratio:auto!important;min-width:0!important;min-height:0!important}
 #game #cells{width:100%!important;height:100%!important}
 #game .drag-piece{box-sizing:border-box!important;border-width:1px!important;border-radius:2px!important}
+
+/* Allow the picture puzzle on portrait devices without covering the board. */
+@media(orientation:portrait){#game:before{content:none!important;display:none!important}}
