@@ -16,6 +16,22 @@ const { chromium } = require('playwright');
   await page.evaluate(()=>{document.querySelector('#parent').classList.add('hidden');document.querySelector('#colorParent').classList.remove('hidden')});
   label=await page.locator('#colorParent .add-btn').boundingBox();
   if(!label||label.height>90)throw Error('Oversized coloring button '+JSON.stringify({viewport,label}));
+  // Main picture puzzle: all pieces must be visible and exactly match cell dimensions.
+  await page.evaluate(()=>startGame({data:'data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="500" height="500"><rect width="500" height="500" fill="#e9b44a"/></svg>')}));
+  await page.waitForTimeout(120);
+  for(const n of [2,3,4,5]){
+   await page.evaluate(n=>{gridSize=n;startGame(current)},n);
+   await page.waitForTimeout(80);
+   const layout=await page.evaluate(()=>{
+    const board=document.querySelector('#game .board').getBoundingClientRect(),tray=document.querySelector('#game .tray').getBoundingClientRect();
+    const cells=[...document.querySelectorAll('#game .cell')].map(e=>e.getBoundingClientRect());
+    const pieces=[...document.querySelectorAll('#game .tray .piece')].map(e=>e.getBoundingClientRect());
+    return {board:{x:board.x,y:board.y,w:board.width,h:board.height},tray:{x:tray.x,y:tray.y,w:tray.width,h:tray.height},cells:cells.map(r=>({w:r.width,h:r.height})),pieces:pieces.map(r=>({x:r.x,y:r.y,w:r.width,h:r.height,right:r.right,bottom:r.bottom}))};
+   });
+   if(layout.pieces.length!==n*n)throw Error('Missing picture tiles '+JSON.stringify({viewport,n,layout}));
+   if(layout.pieces.some((p,i)=>Math.abs(p.w-layout.cells[i].w)>1||Math.abs(p.h-layout.cells[i].h)>1))throw Error('Picture puzzle pieces not 1:1 '+JSON.stringify({viewport,n,layout}));
+   if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height+1))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
+  }
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
   await page.evaluate(async()=>{
    const files=['soft-round.png','soft-classic.png','soft-fine.png','cone-waffle-cup-raster.png'];
