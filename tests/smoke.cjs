@@ -36,7 +36,8 @@ const { chromium } = require('playwright');
    if(side&&layout.board.w<Math.min(viewport.height*.50,430))throw Error('Tablet puzzle board still too small '+JSON.stringify({viewport,n,layout}));
    if(n===2&&layout.pieces.some(p=>p.w>114))throw Error('Four-piece tray occupies excessive board space '+JSON.stringify({viewport,layout}));
    if(layout.pieces.some((p,i)=>Math.abs(p.w-p.h)>1||p.w>layout.cells[i].w+1||p.w<10))throw Error('Waiting tiles have incorrect aspect ratio or size '+JSON.stringify({viewport,n,layout}));
-   if(layout.board.w<Math.min(viewport.width*.50,viewport.height*.50))throw Error('Picture board became too small '+JSON.stringify({viewport,n,layout}));
+   const targetBoardMin=viewport.width<=430?viewport.width*.90:(viewport.width>=1000?Math.min(viewport.height*.70,560):viewport.width*.83);
+   if(layout.board.w<targetBoardMin)throw Error('Picture board does not use available display space '+JSON.stringify({viewport,n,targetBoardMin,layout}));
    const tileRect=await page.locator('#game .tray .piece').first().boundingBox();
    if(!tileRect)throw Error('No puzzle piece to drag');
    await page.mouse.move(tileRect.x+tileRect.width/2,tileRect.y+tileRect.height/2);
@@ -64,6 +65,16 @@ const { chromium } = require('playwright');
     try{say=v=>spoken2.push(v);document.getElementById('kanaPlay').click();}
     finally{say=savedSay;kanaUnits=[];}
     if(spoken2.length!==1||!spoken2[0].startsWith('しゃ'))throw Error('Kana read-aloud button is broken: '+JSON.stringify(spoken2));
+  });
+  await page.evaluate(()=>{
+    const old=kanaRecording;
+    try{
+      kanaRecording=true;renderKana();
+      const keys=[...document.querySelectorAll('#kanaGrid button')].filter(x=>!x.dataset.empty);
+      const activeDisabled=keys.slice(0,3).map(el=>({background:getComputedStyle(el).backgroundColor,color:getComputedStyle(el).color,opacity:getComputedStyle(el).opacity}));
+      const special=document.querySelector('#kanaGrid button.kana-special');
+      if(special){const style=getComputedStyle(special);if(style.backgroundColor!==activeDisabled[0].background||style.opacity!==activeDisabled[0].opacity)throw Error('Disabled small kana differs from regular disabled keys');}
+    }finally{kanaRecording=old;renderKana();}
   });
   await page.goto(origin+'softcream.html',{waitUntil:'load'});
   await page.evaluate(async()=>{
