@@ -8,7 +8,7 @@ const { chromium } = require('playwright');
   await page.goto(origin+'index.html',{waitUntil:'load'});
   await page.waitForTimeout(500);
   await page.evaluate(()=>{document.querySelectorAll('main > .screen').forEach(e=>e.classList.add('hidden'));document.querySelector('#difficulty').classList.remove('hidden')});
-  let d=await page.locator('#difficulty .difficulty-options').boundingBox();
+  let d=await page.locator('#difficulty .difficulty-wrap').boundingBox();
   if(!d||Math.abs(d.x+d.width/2-viewport.width/2)>12)throw Error('Difficulty not centered '+JSON.stringify({viewport,d,debug:await page.locator('#difficulty').evaluate(e=>({class:e.className,style:getComputedStyle(e).display,wrap:getComputedStyle(e.querySelector('.difficulty-options')).display}))}));
   await page.evaluate(()=>{document.querySelector('#difficulty').classList.add('hidden');document.querySelector('#parent').classList.remove('hidden')});
   let label=await page.locator('#parent .add-btn').boundingBox();
