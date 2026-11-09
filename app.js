@@ -43,7 +43,7 @@ function fitPuzzleLayout(){
   const minimumWaiting= Math.min(40,Math.floor((width-8)/cols));
   boardPx=Math.floor(Math.min(680,width,height-36-gap-rows*minimumWaiting));
   const cell=(boardPx-8)/gridSize;
-  waitingPx=Math.floor(Math.min(cell,(width-8)/cols,(height-boardPx-36-gap)/rows));
+  waitingPx=Math.floor(Math.min(112,cell,(width-8)/cols,(height-boardPx-36-gap)/rows));
  }
  boardPx=Math.max(90,boardPx);
  waitingPx=Math.max(12,waitingPx);
