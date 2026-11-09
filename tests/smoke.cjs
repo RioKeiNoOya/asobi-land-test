@@ -31,15 +31,13 @@ const { chromium } = require('playwright');
    if(layout.pieces.length!==n*n)throw Error('Missing picture tiles '+JSON.stringify({viewport,n,layout}));
    if(layout.pieces.some((p,i)=>Math.abs(p.w-p.h)>1||p.w>layout.cells[i].w+1||p.w<10))throw Error('Waiting tiles have incorrect aspect ratio or size '+JSON.stringify({viewport,n,layout}));
    if(layout.board.w<Math.min(viewport.width*.50,viewport.height*.50))throw Error('Picture board became too small '+JSON.stringify({viewport,n,layout}));
-   const activeSize=await page.evaluate(()=>{
-     const piece=document.querySelector('#game .tray .piece');
-     const rect=piece.getBoundingClientRect();
-     const ev=new PointerEvent('pointerdown',{pointerId:91,pointerType:'mouse',button:0,clientX:rect.x+rect.width/2,clientY:rect.y+rect.height/2,bubbles:true,cancelable:true});
-     piece.dispatchEvent(ev);
-     const dragged=document.getElementById('dragPiece').getBoundingClientRect();
-     window.dispatchEvent(new PointerEvent('pointercancel',{pointerId:91,bubbles:true}));
-     return {width:dragged.width,height:dragged.height};
-   });
+   const tileRect=await page.locator('#game .tray .piece').first().boundingBox();
+   if(!tileRect)throw Error('No puzzle piece to drag');
+   await page.mouse.move(tileRect.x+tileRect.width/2,tileRect.y+tileRect.height/2);
+   await page.mouse.down();
+   const activeSize=await page.locator('#dragPiece').boundingBox();
+   await page.mouse.up();
+   if(!activeSize)throw Error('Active puzzle piece not rendered');
    if(Math.abs(activeSize.width-layout.cells[0].w)>1||Math.abs(activeSize.height-layout.cells[0].h)>1)throw Error('Active piece does not expand to board cell size '+JSON.stringify({viewport,n,layout,activeSize}));
    if(layout.pieces.some(p=>p.x<0||p.right>viewport.width+1||p.y<0||p.bottom>viewport.height+1))throw Error('Picture tile outside screen '+JSON.stringify({viewport,n,layout}));
   }
