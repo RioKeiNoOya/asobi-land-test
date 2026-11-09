@@ -337,7 +337,7 @@ document.addEventListener('pointerdown',e=>{const b=e.target.closest('button,.ad
    // Only remove the application's own offline caches; do not touch IndexedDB or local storage.
    if('caches' in window){
     const names=await caches.keys();
-    await Promise.all(names.filter(n=>n.startsWith('asobi-land-')).map(n=>caches.delete(n)));
+    await Promise.all(names.filter(n=>n.startsWith('asobi-v')||n.startsWith('asobi-ice-v')||n.startsWith('asobi-land-')).map(n=>caches.delete(n)));
    }
    status.textContent='よみこみなおします';
    const u=new URL(location.href);u.searchParams.set('refresh',String(Date.now()));
