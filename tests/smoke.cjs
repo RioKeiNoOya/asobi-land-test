@@ -64,9 +64,14 @@ const { chromium } = require('playwright');
         infoVisible:getComputedStyle(document.getElementById('slideInfo')).display!=='none',
         tiles:slideTiles.slice(),empty:slideEmpty};
     });
-    if(sliding.mode!=='slide'||sliding.count!==n*n||sliding.blank!==1||!sliding.trayHidden||!sliding.infoVisible)throw Error('Slide board missing '+JSON.stringify({viewport,n,sliding}));
-    if(sliding.movable<2||sliding.movable>4)throw Error('Invalid slide neighbors '+JSON.stringify({viewport,n,sliding}));
+    if(sliding.mode!=='slide'||sliding.count!==(n===2?5:n*n)||sliding.blank!==1||!sliding.trayHidden||!sliding.infoVisible)throw Error('Slide board missing '+JSON.stringify({viewport,n,sliding}));
+    if(sliding.movable<1||sliding.movable>4)throw Error('Invalid slide neighbors '+JSON.stringify({viewport,n,sliding}));
     if(sliding.board.w<Math.min(viewport.width*.8,viewport.height*.55))throw Error('Slide board too small '+JSON.stringify({viewport,n,sliding}));
+    if(n===2){
+      const geo=await page.evaluate(()=>({goal:slideGoal(),cells:[...document.querySelectorAll('#cells .slide-cell')].map(e=>({index:Number(e.dataset.index),x:e.getBoundingClientRect().x,y:e.getBoundingClientRect().y}))}));
+      if(JSON.stringify(geo.goal)!==JSON.stringify([0,1,-1,2,3]))throw Error('Five-cell goal must complete all four pieces '+JSON.stringify(geo));
+      if(!(geo.cells[2].x>geo.cells[1].x&&Math.abs(geo.cells[2].y-geo.cells[1].y)<2))throw Error('Spare cell not at upper right '+JSON.stringify(geo));
+    }
     const move=await page.evaluate(()=>{
       const bad=slideEmpty;
       const good=slideNeighbours(slideEmpty)[0];
@@ -90,6 +95,29 @@ const { chromium } = require('playwright');
     await page.mouse.move(to.x+to.width/2,to.y+to.height/2,{steps:6});
     await page.mouse.up();await page.waitForTimeout(160);
     if(await page.evaluate(()=>slideEmpty)!==position.neighbor)throw Error('Finger sliding did not move a tile into the blank');
+    if(n===2){
+      // Repeated hints must stop with exactly one legal player move remaining.
+      for(let i=0;i<24;i++){
+        const remaining=await page.evaluate(()=>slideFiveHint()?.remaining||0);
+        if(remaining<=1)break;
+        const changed=await page.evaluate(()=>slideHintStep());
+        if(!changed)throw Error('Five-cell hint stopped early at distance '+remaining);
+        await page.waitForTimeout(240);
+      }
+      const near=await page.evaluate(()=>({remaining:slideFiveHint()?.remaining||0,solved:slideSolved(),before:slideTiles.slice(),click:slideHintStep(),after:slideTiles.slice()}));
+      if(near.remaining!==1||near.solved||near.click!==false||JSON.stringify(near.before)!==JSON.stringify(near.after))throw Error('Hints must stop one move before finish '+JSON.stringify({viewport,near}));
+      const last=await page.evaluate(()=>slideMove(slideFiveHint().index));
+      if(!last||!await page.evaluate(()=>slideSolved()))throw Error('Child cannot finish last slide');
+    }else{
+      // Larger levels use the recorded legal path rather than a costly solver.
+      const trial=await page.evaluate(()=>({previous:slideTrail.length,lastBlank:slideEmpty,expected:slideTrail.at(-2)?.empty,remaining:slideTrail.length-1}));
+      if(trial.remaining>1){
+        if(!await page.evaluate(()=>slideHintStep()))throw Error('Larger slide hint unavailable '+n);
+        await page.waitForTimeout(240);
+        const next=await page.evaluate(()=>({blank:slideEmpty,length:slideTrail.length}));
+        if(next.blank!==trial.expected||next.length!==trial.previous-1)throw Error('Hint should reverse one recorded step '+JSON.stringify({viewport,n,trial,next}));
+      }
+    }
   }
   await page.goto(origin+'index.html',{waitUntil:'load'});
   await page.evaluate(()=>{
