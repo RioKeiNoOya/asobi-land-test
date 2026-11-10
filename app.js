@@ -1,5 +1,5 @@
 'use strict';
-const $=id=>document.getElementById(id);const screens=['home','gallery','difficulty','game','parent','colorGallery','coloring','colorParent','kana','traceMenu','traceGallery','tracing','traceParent'];let screen='home',images=[],current=null,placed=new Set(),order=[],hint=false,db=null,audio=null,drag=null,lockTimer=null,gridSize=3,selectedImage=null,puzzleMode='normal',slideTiles=[],slideEmpty=-1,slideMoves=0;
+const $=id=>document.getElementById(id);const screens=['home','gallery','difficulty','game','parent','colorGallery','coloring','colorParent','kana','traceMenu','traceGallery','tracing','traceParent'];let screen='home',images=[],current=null,placed=new Set(),order=[],hint=false,db=null,audio=null,drag=null,lockTimer=null,gridSize=3,selectedImage=null,puzzleMode='normal',slideTiles=[],slideEmpty=-1,slideMoves=0,slideTrail=[];
 const DB='asobi-land-v1';
 function openDB(){return new Promise((resolve,reject)=>{const r=indexedDB.open(DB,1);r.onupgradeneeded=()=>r.result.createObjectStore('pictures',{keyPath:'id'});r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
 function transact(mode,callback){return new Promise((resolve,reject)=>{const t=db.transaction('pictures',mode);const store=t.objectStore('pictures');let req=callback(store);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)})}
@@ -11,7 +11,7 @@ function renderManage(){const root=$('manage');root.replaceChildren();images.for
 function shuffled(){const count=gridSize*gridSize;const arr=Array.from({length:count},(_,i)=>i);for(let i=count-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}return arr}
 function position(i){return `${(i%gridSize)*100/(gridSize-1)}% ${Math.floor(i/gridSize)*100/(gridSize-1)}%`}
 document.querySelectorAll('.difficulty-btn').forEach(btn=>btn.addEventListener('click',()=>{gridSize=Number(btn.dataset.size);puzzleMode=btn.dataset.mode==='slide'?'slide':'normal';if(selectedImage)startGame(selectedImage)}));
-function startGame(im){slideGesture=null;slideAnimating=false;current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();document.getElementById('game').classList.toggle('slide-game',puzzleMode==='slide');$('slideInfo').hidden=puzzleMode!=='slide';$('tray').hidden=puzzleMode==='slide';if(puzzleMode==='slide')newSlideBoard();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
+function startGame(im){slideGesture=null;slideAnimating=false;current=im;placed=new Set();order=shuffled();$('referenceImg').src=im.data;$('ghost').style.backgroundImage=`url(${im.data})`;clearHint();document.getElementById('game').classList.toggle('slide-game',puzzleMode==='slide');document.getElementById('game').classList.toggle('slide-five',puzzleMode==='slide'&&gridSize===2);$('hint').textContent=puzzleMode==='slide'?'💡 1て おしえて':'💡 ヒント';$('slideInfo').textContent='あいている ところへ ゆびで スライドしてね！';$('slideInfo').hidden=puzzleMode!=='slide';$('tray').hidden=puzzleMode==='slide';if(puzzleMode==='slide')newSlideBoard();renderBoard();renderTray();show('game');requestAnimationFrame(()=>{fitPuzzleLayout();requestAnimationFrame(fitPuzzleLayout)})}
 function puzzleTrayShape(){
  const count=gridSize*gridSize;
  const rows=count<=16?2:3;
@@ -35,7 +35,7 @@ function fitPuzzleLayout(){
  let cols,rows,boardPx,waitingPx;
  if(puzzleMode==='slide'){
   rows=0;cols=0;
-  boardPx=Math.floor(Math.min(width,height-40,820));
+  boardPx=slideFive()?Math.floor(Math.min(width,(height-60)*1.5,820)):Math.floor(Math.min(width,height-40,820));
   waitingPx=0;
  }else if(sideBySide){
   rows=gridSize;cols=gridSize;
@@ -65,37 +65,111 @@ function fitPuzzleLayout(){
 window.addEventListener('resize',()=>requestAnimationFrame(fitPuzzleLayout));
 // Starting from the solved arrangement and taking only legal blank moves
 // ensures every randomized slide puzzle is solvable.
+// Easy 4-piece slide: a 2x2 complete picture plus an extra empty cell
+// to the upper right (two rows, three columns with lower-right absent).
+function slideFive(){return puzzleMode==='slide'&&gridSize===2;}
+function slideGoal(){
+ if(slideFive())return [0,1,-1,2,3];
+ return Array.from({length:gridSize*gridSize},(_,i)=>i===gridSize*gridSize-1?-1:i);
+}
+function slideCoords(index){
+ if(slideFive())return {col:index<3?index:index-3,row:index<3?0:1};
+ return {col:index%gridSize,row:Math.floor(index/gridSize)};
+}
+function slideNeighbours(index){
+ const c=slideCoords(index),results=[];
+ for(let i=0;i<slideTiles.length;i++){
+  if(i===index)continue;
+  const other=slideCoords(i);
+  if(Math.abs(other.col-c.col)+Math.abs(other.row-c.row)===1)results.push(i);
+ }
+ return results;
+}
+function slideSolved(){const goal=slideGoal();return slideTiles.length===goal.length&&slideTiles.every((v,i)=>v===goal[i]);}
+function slideKey(tiles){return tiles.join(',');}
+function slideTrailRecord(){
+ const latest={tiles:slideTiles.slice(),empty:slideEmpty};
+ const previous=slideTrail.at(-2);
+ if(previous&&slideKey(previous.tiles)===slideKey(latest.tiles)){slideTrail.pop();return;}
+ slideTrail.push(latest);
+}
+// Guaranteed solvable randomization: move from the completed picture along
+// legal paths and keep a reversible trail for "one step" on larger boards.
 function newSlideBoard(){
- const total=gridSize*gridSize;
- slideTiles=Array.from({length:total},(_,i)=>i===total-1?-1:i);
- slideEmpty=total-1;slideMoves=0;
+ slideTiles=slideGoal();slideEmpty=slideTiles.indexOf(-1);slideMoves=0;
+ slideTrail=[{tiles:slideTiles.slice(),empty:slideEmpty}];
  let previous=-1;
- const steps=gridSize===2?25:gridSize===3?90:gridSize===4?180:280;
+ const steps=gridSize===2?7:gridSize===3?32:gridSize===4?75:130;
  for(let k=0;k<steps;k++){
   const adjacent=slideNeighbours(slideEmpty).filter(i=>i!==previous);
   const opts=adjacent.length?adjacent:slideNeighbours(slideEmpty);
   const target=opts[Math.floor(Math.random()*opts.length)];
   const oldEmpty=slideEmpty;
   slideTiles[oldEmpty]=slideTiles[target];slideTiles[target]=-1;
-  slideEmpty=target;previous=oldEmpty;
+  slideEmpty=target;previous=oldEmpty;slideTrailRecord();
  }
  if(slideSolved()){
   const target=slideNeighbours(slideEmpty)[0];
-  slideTiles[slideEmpty]=slideTiles[target];slideTiles[target]=-1;slideEmpty=target;
+  slideTiles[slideEmpty]=slideTiles[target];slideTiles[target]=-1;slideEmpty=target;slideTrailRecord();
  }
 }
-function slideNeighbours(i){
- const col=i%gridSize,row=Math.floor(i/gridSize),list=[];
- if(col>0)list.push(i-1);if(col<gridSize-1)list.push(i+1);
- if(row>0)list.push(i-gridSize);if(row<gridSize-1)list.push(i+gridSize);
- return list;
+// On the five-cell beginner board, BFS gives a genuine shortest hint even
+// if the child has moved tiles independently of the shuffle history.
+function slideFiveHint(){
+ const goal=slideGoal(),key=slideKey(slideTiles),wanted=slideKey(goal);
+ if(key===wanted)return null;
+ const queue=[{tiles:slideTiles.slice(),empty:slideEmpty,first:null,depth:0}];
+ const seen=new Set([key]);
+ for(let p=0;p<queue.length;p++){
+  const node=queue[p];
+  for(const neighbor of slideNeighbours(node.empty)){
+   const next=node.tiles.slice();
+   next[node.empty]=next[neighbor];next[neighbor]=-1;
+   const nk=slideKey(next);if(seen.has(nk))continue;
+   const first=node.first===null?neighbor:node.first;
+   if(nk===wanted)return {index:first,remaining:node.depth+1};
+   seen.add(nk);queue.push({tiles:next,empty:neighbor,first,depth:node.depth+1});
+  }
+ }
+ return null;
 }
-function slideSolved(){return slideTiles.every((value,i)=>value===(i===slideTiles.length-1?-1:i));}
+function slideHintStep(){
+ if(screen!=='game'||puzzleMode!=='slide'||slideAnimating||slideGesture)return false;
+ const suggested=slideFive()?slideFiveHint():null;
+ let index=null,remaining=0;
+ if(slideFive()){
+  if(suggested){index=suggested.index;remaining=suggested.remaining;}
+ }else if(slideTrail.length>1){
+  index=slideTrail.at(-2).empty;
+  remaining=slideTrail.length-1;
+ }
+ if(index===null||remaining<=1){
+  $('slideInfo').textContent='あと 1て！ じぶんで うごかしてね！';
+  return false;
+ }
+ if(!slideNeighbours(slideEmpty).includes(index))return false;
+ const tile=$('cells').querySelector('[data-index="'+index+'"]');
+ const dir=slideDirection(index);if(!tile||!dir)return false;
+ const rect=tile.getBoundingClientRect(),extent=dir.dx?rect.width:rect.height;
+ slideAnimating=true;
+ tile.classList.add('slide-moving');
+ tile.style.transition='transform 180ms ease-in-out';
+ tile.style.transform='translate('+dir.dx*extent+'px,'+dir.dy*extent+'px)';
+ $('slideInfo').textContent='この ピースを うごかすよ！';
+ setTimeout(()=>{
+  tile.style.transform='';tile.style.transition='';
+  slideMove(index,true);
+  slideAnimating=false;
+  if(slideFive()?(slideFiveHint()?.remaining===1):(slideTrail.length===2))$('slideInfo').textContent='あと 1て！ じぶんで うごかしてね！';
+ },195);
+ return true;
+}
 let slideGesture=null,slideAnimating=false;
 function slideDirection(index){
  if(!slideNeighbours(slideEmpty).includes(index))return null;
- const dx=(slideEmpty%gridSize)-(index%gridSize);
- const dy=Math.floor(slideEmpty/gridSize)-Math.floor(index/gridSize);
+ const a=slideCoords(slideEmpty),b=slideCoords(index);
+ const dx=a.col-b.col;
+ const dy=a.row-b.row;
  return {dx,dy};
 }
 function beginSlide(e){
@@ -138,17 +212,18 @@ function finishSlide(e,cancel=false){
   slideAnimating=false;
  },125);
 }
-function slideMove(index){
+function slideMove(index,fromHint=false){
  if(puzzleMode!=='slide'||screen!=='game'||!slideNeighbours(slideEmpty).includes(index))return false;
  slideTiles[slideEmpty]=slideTiles[index];slideTiles[index]=-1;slideEmpty=index;slideMoves++;
- puzzleClick('release');renderBoard();
- if(slideSolved())setTimeout(()=>{if(screen==='game'&&slideSolved())complete()},420);
+ slideTrailRecord();puzzleClick('release');renderBoard();
+ if(!fromHint)$('slideInfo').textContent='あいている ところへ ゆびで スライドしてね！';
+ if(slideSolved()&&!fromHint)setTimeout(()=>{if(screen==='game'&&slideSolved())complete()},420);
  return true;
 }
 function renderBoard(){const root=$('cells');root.replaceChildren();if(puzzleMode==='slide'){renderSlideBoard();return;}root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;$('board').style.setProperty('--grid-size',gridSize);for(let i=0;i<gridSize*gridSize;i++){const el=document.createElement('div');el.className='cell';el.dataset.index=i;if(placed.has(i)){el.style.backgroundImage=`url(${current.data})`;el.style.backgroundPosition=position(i)}root.append(el)}}
 function renderSlideBoard(){
- const root=$('cells');
- root.style.gridTemplateColumns=`repeat(${gridSize},1fr)`;
+ const root=$('cells'),five=slideFive();
+ root.style.gridTemplateColumns=`repeat(${five?3:gridSize},1fr)`;
  root.style.gridTemplateRows=`repeat(${gridSize},1fr)`;
  $('board').style.setProperty('--grid-size',gridSize);
  slideTiles.forEach((tile,i)=>{
@@ -159,8 +234,8 @@ function renderSlideBoard(){
    btn.style.backgroundImage=`url(${current.data})`;
    btn.style.backgroundPosition=position(tile);
    btn.setAttribute('aria-label',`ピース ${tile+1}`);
-   if(slideNeighbours(slideEmpty).includes(i))btn.classList.add('slide-movable');
    if(slideNeighbours(slideEmpty).includes(i)){
+    btn.classList.add('slide-movable');
     btn.addEventListener('pointerdown',beginSlide);
     btn.addEventListener('pointermove',moveSlide);
     btn.addEventListener('pointerup',finishSlide);
@@ -169,6 +244,7 @@ function renderSlideBoard(){
   }else{btn.disabled=true;btn.setAttribute('aria-label','あいている マス');}
   root.append(btn);
  });
+ if(five){const spacer=document.createElement('div');spacer.className='slide-unused';spacer.setAttribute('aria-hidden','true');root.append(spacer);}
 }
 function renderTray(){const root=$('tray');if(puzzleMode==='slide'){root.replaceChildren();return;}root.replaceChildren();root.style.setProperty('--grid-size',gridSize);const layout=puzzleTrayShape();root.style.setProperty('--tray-cols',layout.cols);root.style.setProperty('--tray-rows',layout.rows);order.forEach(i=>{const slot=document.createElement('div');slot.className='slot';if(!placed.has(i)){const piece=document.createElement('div');piece.className='piece';piece.dataset.index=i;piece.style.backgroundImage=`url(${current.data})`;piece.style.backgroundPosition=position(i);piece.addEventListener('pointerdown',startDrag);slot.append(piece)}root.append(slot)})}
 function startDrag(e){if(e.button!==0||drag)return;e.preventDefault();const piece=e.currentTarget;const rect=piece.getBoundingClientRect();const clone=$('dragPiece');const cell=$('cells').querySelector('.cell');const size=cell?cell.getBoundingClientRect().width:Math.max(rect.width,rect.height);clone.classList.remove('hidden');clone.style.width=size+'px';clone.style.height=size+'px';clone.style.backgroundImage=piece.style.backgroundImage;clone.style.backgroundPosition=piece.style.backgroundPosition;clone.style.backgroundSize=`${gridSize*100}% ${gridSize*100}%`;drag={id:Number(piece.dataset.index),pointer:e.pointerId,source:piece,size,dx:size/2,dy:size/2};piece.style.opacity='.2';puzzleClick('grab');moveDrag(e);piece.setPointerCapture(e.pointerId)}
@@ -197,7 +273,7 @@ function puzzleClick(kind){
 function tone(correct){try{audio??=new (window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();const now=audio.currentTime;const notes=correct?[[660,0,.09],[880,.09,.1]]:[[260,0,.12],[190,.11,.12]];notes.forEach(([f,delay,len])=>{const o=audio.createOscillator(),g=audio.createGain();o.type=correct?'sine':'triangle';o.frequency.value=f;g.gain.setValueAtTime(.0001,now+delay);g.gain.exponentialRampToValueAtTime(.12,now+delay+.01);g.gain.exponentialRampToValueAtTime(.0001,now+delay+len);o.connect(g).connect(audio.destination);o.start(now+delay);o.stop(now+delay+len+.01)})}catch(e){}}
 function complete(){if(screen!=='game'||(puzzleMode==='slide'?!slideSolved():placed.size!==gridSize*gridSize))return;$('doneImg').src=current.data;$('complete').classList.remove('hidden');const box=$('confetti');box.replaceChildren();for(let i=0;i<55;i++){const el=document.createElement('span');el.className='confetti';el.textContent=['⭐','✨','🎉','💛','❤️'][i%5];el.style.left=Math.random()*100+'%';el.style.animationDelay=Math.random()*.7+'s';box.append(el)}tone(true);setTimeout(()=>tone(true),180)}
 $('start').onclick=()=>show('gallery');$('back').onclick=goBack;$('reset').onclick=()=>{if(current)startGame(current)};$('again').onclick=()=>{$('complete').classList.add('hidden');startGame(current)};$('next').onclick=()=>{$('complete').classList.add('hidden');show('gallery')};
-const hintBtn=$('hint');hintBtn.addEventListener('pointerdown',e=>{e.preventDefault();setHint(true);hintBtn.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(ev=>hintBtn.addEventListener(ev,clearHint));hintBtn.addEventListener('contextmenu',e=>e.preventDefault());
+const hintBtn=$('hint');hintBtn.addEventListener('pointerdown',e=>{e.preventDefault();if(screen==='game'&&puzzleMode==='slide'){slideHintStep();return;}setHint(true);hintBtn.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture','pointerleave'].forEach(ev=>hintBtn.addEventListener(ev,clearHint));hintBtn.addEventListener('contextmenu',e=>e.preventDefault());
 const lock=$('lock');
 function cancelLock(){if(lockTimer!==null){clearTimeout(lockTimer);lockTimer=null}}
 function openParent(){cancelLock();if(screen==='colorGallery')show('colorParent');else if(screen==='traceGallery')show('traceParent');else {gridSize=3;selectedImage=null;show('parent')}}
