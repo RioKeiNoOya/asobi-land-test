@@ -24,7 +24,7 @@
 (function(){
  const el=document.getElementById('siteUpdated');
  if(!el)return;
- fetch('https://api.github.com/repos/RioKeiNoOya/asobi-land-test/commits/main',{cache:'no-store'})
+ fetch('https://api.github.com/repos/redapnyanyas/asobi-land-test/commits/main',{cache:'no-store'})
  .then(r=>{if(!r.ok)throw Error('github');return r.json()})
  .then(d=>{
    const iso=d?.commit?.committer?.date||d?.commit?.author?.date;
